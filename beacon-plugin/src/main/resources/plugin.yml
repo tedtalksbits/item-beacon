@@ -1,0 +1,19 @@
+name: ItemBeacon
+version: '${version}'
+main: dev.whizzle.itembeacon.ItemBeaconPlugin
+api-version: '26.3'
+description: Find your own stuff. Stand at an Item Beacon, pick an item, get waypoints to every container holding it.
+author: tedtalksbits
+commands:
+  itembeacon:
+    description: Item Beacon help, info, demo and owner tools
+    usage: /itembeacon [info | demo | owner <player|clear>]
+    aliases: [ibeacon]
+    permission: itembeacon.use
+permissions:
+  itembeacon.use:
+    description: Use /itembeacon.
+    default: true
+  itembeacon.admin:
+    description: Reassign or clear a container's owner (/itembeacon owner).
+    default: op

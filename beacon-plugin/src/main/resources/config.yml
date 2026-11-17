@@ -1,0 +1,9 @@
+# Item Beacon settings. Restart the server after changing them.
+
+# Blocks around a beacon (horizontally, all heights) whose containers are read live when you open it. Your
+# containers further away are still listed, with what was in them when last seen. Containers beyond the server's
+# view distance are unloaded anyway, so a radius much larger than that adds little.
+radius: 64
+
+# How long waypoints last (minutes). They also clear when you open that container, or by hand.
+waypoint-minutes: 10
