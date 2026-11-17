@@ -37,9 +37,37 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
   - `Demo`: `/itembeacon demo`.
 - `beacon-plugin/src/main/java/dev/whizzle/itembeacon/model/`: pure Java (`Wire`, `Protocol`, `BlockSet`, `ItemKey`,
   `Stack`, `Entry`, `PlayerIndex`). The mod (slice 2) compiles it in too, as Glowing Glass does. Change it once.
+  - `Particles`: enchanting glyphs drifting into beacons near players (config `particles`).
+- `fabric-client/`: Fabric client mod (separate Gradle build, Loom), package `dev.whizzle.itembeacon.client`.
+  - `ItemBeaconClient`: handshake, beacon chunks (query for chunks loaded before the welcome, 64 per tick), summary
+    pages -> `PickerScreen`, places, opened; `/itembeaconmod`.
+  - `BeaconCache` (pure): which lodestones are beacons, by chunk; read from chunk-meshing threads.
+  - `render/BeaconModels` + `BeaconBlockModel`: the model swap (Glowing Glass's `GlassModels`/`GlassBlockModel`):
+    the lodestone's block state model wrapped after baking; the beacon cube emitted at marked positions.
+  - Item: `assets/minecraft/items/lodestone.json` selects on custom model data string `itembeacon:item_beacon`,
+    vanilla fallback. Textures `item_beacon_side.png` / `item_beacon_top.png` (the owner's chosen draft).
+  - `CreativeTab`: an "Item Beacon" tab, the stack built with exactly `BeaconItem.create`'s components.
+  - `ui/PickerScreen`: the screen (grid with totals, search, filters, sort, places list, Show waypoints / Nearest
+    only / Clear). `ui/Items`: decoding the server's item bytes, filters from the creative tabs.
+  - `SummaryAssembler`, `Format`, `Waypoints` (pure): pages, text, the client's copy of the waypoints (slice 3 draws
+    them).
 - `paper-selftest/`: development-only plugin that checks the plugin on a real Paper server.
+- `ci/mixin-audit/`: loads the mod in a real Fabric Loader (no mixins of our own yet; checks the model wrapper and
+  that the screen's overrides still override). `ci/client-pure-tests/`: the mod's pure-Java tests without Loom.
 
 ## Status (2026-11-16)
+
+- **Slice 2 (the mod) done, not yet in a real game.** Client 0.1.0, plugin still 0.1.0 (unreleased), protocol 1
+  (unreleased, so changed in place: `pick` no longer sets waypoints; new `show` and `clear`).
+  - Checked here: the mod compiles against 26.3 / Fabric API 0.164.0; mixin audit OK (all mod classes load in a real
+    Fabric Loader, BeaconBlockModel overrides the five position-aware methods, every PickerScreen override still
+    overrides); 10 client tests (cache, summary pages in any order, counts, text, waypoints, textures 16x16 opaque,
+    model strings match the plugin and the creative tab, no literal mouse buttons, no glyphs the font lacks);
+    20 plugin unit tests; self-test 24 checks (new: the creative tab's item is a real beacon and stacks with a
+    crafted one; particles tick).
+  - **Not checked: anything on screen** (no 26.3 client here): the screen's layout, item decoding on a real client,
+    the model swap under Sodium/Iris. `docs/TEST_PLAN.md` tests 23-36.
+  - Until slice 3, "Show waypoints" asks the server for its glowing outlines (`show` with outlines = true).
 
 - **Slice 1 (server side) done, not yet in a real game.** Plugin 0.1.0, protocol 1, no mod yet.
   - Checked here: 19 unit tests (model, protocol paging, item, recipe, bridge with MockBukkit); self-test on Paper
@@ -52,8 +80,8 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
   - **Not seen in a real game:** a player opening/closing/placing/breaking, the menu, outlines, the compass guard,
     ender chest contents. `docs/TEST_PLAN.md` tests 1-22.
   - CI: workflows written (plugin + self-test; release publishes the plugin jar), **not yet run** (the owner pushes).
-- Next: the owner's in-game check; then slice 2 (mod: picker screen, station texture, creative tab, optional
-  particles), slice 3 (mod waypoints: beam, x-ray outline, marker, clearing).
+- Next: the owner's in-game check of slices 1 and 2 (screenshots of the screen), his redrawn textures; then slice 3
+  (mod waypoints: beam, x-ray outline, on-screen marker; `show` with outlines = false).
 
 ## Open items
 
@@ -77,8 +105,10 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 | Without the mod: chest-style menu, glowing block-display outlines only that player sees, chat list | Kickoff ("whatever is trivial") |
 | Recipe: shaped column compass / lodestone / eye of ender; the lodestone must be a plain one | Owner |
 | Carrier: lodestone; a compass never binds to a beacon | Owner |
-| Look: C's sides (lodestone with a glowing core) with A's compass-rose top; the owner redraws (drafts in `Claude outputs\item-beacon\drafts\`) | Owner, slice 2 |
-| Optional, low priority: enchanting-table-style particles | Owner, slice 2, only if cheap |
+| Look: C's sides (lodestone with a glowing core) with A's compass-rose top; the owner redraws (drafts in `Claude outputs\item-beacon\drafts\`); bottom: plain lodestone top | Owner; in the mod since client 0.1.0 |
+| Enchanting-table glyphs drifting into beacons near players, server-side, config `particles` | Owner (low priority; cheap, so done) |
+| The screen follows the mockup (`item-beacon-picker.png`): grid left, places right; filters from creative tab groups (All, Blocks, Tools, Food, Redstone, Ingredients); sort most first / A-Z; items only in last-seen containers get a darker slot | Kickoff |
+| Waypoints: picking an item only lists places; "Show waypoints" / "Nearest only" set them (`show`), "Clear waypoints" clears (`clear`) | Mockup's two buttons |
 | Index: one file per player, item bytes once per file; items grouped by exact bytes of a count-1 copy (`serializeAsBytes`) | Small, and "same item and components" exactly |
 | Summary split into pages of at most 256 KiB (custom payloads over 1 MiB are refused) | Owner, 2026-11-16 |
 | Demos only in creative | Same rule as the other projects |
@@ -99,6 +129,9 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 ## Building and testing
 
 - Plugin: `gradlew build` at the root (Java 25, Gradle 9.8.0). Jar: `beacon-plugin/build/libs/beacon-plugin-<v>.jar`.
+- Client: `cd fabric-client && gradlew build`. Jar: `fabric-client/build/libs/item-beacon-client-<v>.jar`.
+- Mixin audit: `ci/mixin-audit/run.sh` (Linux, CI; offline `GRADLE="<gradle> --offline"`, JDK 25 first on `PATH`).
+  Prints `AUDIT RESULT OK` or fails. Add new mod classes to its target list.
 - Self-test: `ci/run-selftest.sh <paper.jar> <new-folder>` (Linux, Git Bash, CI): a throwaway flat-world server
   with `-Ditembeacon.selftest.exit=true`; fails unless `plugins/ItemBeaconSelfTest/report.txt` ends
   `SELFTEST PASSED`. Offline: `PAPER_SEED_DIR=<existing server folder>`. `SELFTEST_ONLY=beacon,gone` runs only steps
@@ -123,8 +156,12 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 - `Chest#getBlockInventory` is one half's own inventory; `getInventory` is the whole double chest.
 - MockBukkit: no real chunk persistence or block entities; test containers in the self-test.
 - The flat self-test world is only 3 blocks deep above bedrock: the demo buries its chest as deep as it can (2-4).
-- From Shulker Styles, for the mod's UI: mouse buttons are SDL-numbered (`InputConstants.MOUSE_BUTTON_*`); screen
-  overlays from `ScreenEvents.afterForeground`; the GUI font has no ✓ ✕ ≠ ≤ ≥ →.
+- Mod UI (from Shulker Styles, tested in `ResourcesTest`): mouse buttons are SDL-numbered
+  (`InputConstants.MOUSE_BUTTON_*`); the GUI font has no ✓ ✕ ≠ ≤ ≥ →. `Screen.extractRenderStateWithTooltipAndSubtitles`
+  calls `extractBackground`, then `extractRenderState` (widgets): draw the panel by overriding `extractBackground`
+  (super first), never call it yourself. Open screens with `minecraft.gui.setScreen`.
+- The server's item bytes are `ItemStack.CODEC` + `DataVersion` + compressed NBT (read from the Paper jar); 26.3 has
+  no `DataFixTypes.ITEM_STACK`, so `ui/Items` updates through `References.ITEM_STACK` directly.
 
 ## Cloud workspace pitfalls
 
@@ -136,7 +173,10 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
   `item-beacon\.tools\stage\` (gitignored, each under 400 MB), stage them, unpack into a `GRADLE_USER_HOME` in the
   container, and run the distribution's `gradle --offline` directly (no init script needed). Delete `.tools\stage\`
   afterwards.
-- The mod (slice 2) also needs `caches/fabric-loom` (see Glowing Glass's AGENTS.md).
+- The mod also needs `caches/fabric-loom/26.3`, `minecraftMaven` and `mojang_versions_manifest.json` (one 324 MB tar)
+  unpacked into the same `GRADLE_USER_HOME`; Loom 1.19.2 needs Gradle itself to run on JDK 25 (`JAVA_HOME`). Its unit
+  tests need Linux natives the owner's cache lacks: run `ci/client-pure-tests` (JUnit 6.1.3 is the cached version).
+- The owner may have saved the "offline-mc-build" skill: it describes this whole routine.
 - Getting commits to the owner: `git bundle create X.bundle main` (later `<his HEAD>..main`), copy it to
   `.tools\transfer\`, `git pull --ff-only .tools/transfer/X.bundle main` in the repo, delete `.tools/transfer`. Git
   on the device needs delete permission (its lock files).

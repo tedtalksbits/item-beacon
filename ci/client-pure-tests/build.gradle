@@ -1,0 +1,24 @@
+// The client mod's pure-Java tests, without Loom. Under Loom they need Linux LWJGL natives that a Windows-built Gradle
+// cache lacks (the offline cloud workspace); CI runs them under Loom normally. Offline here:
+//   cd ci/client-pure-tests && gradle --offline test        (Gradle 9.8.0, JDK 25, the owner's Gradle cache)
+plugins { id 'java' }
+repositories { mavenCentral() }
+def client = file('../../fabric-client')
+sourceSets {
+	main {
+		java {
+			srcDir "$client/../beacon-plugin/src/main/java"
+			srcDir "$client/src/main/java"
+			include 'dev/whizzle/itembeacon/model/**', 'dev/whizzle/itembeacon/client/BeaconCache.java',
+				'dev/whizzle/itembeacon/client/SummaryAssembler.java', 'dev/whizzle/itembeacon/client/Format.java',
+				'dev/whizzle/itembeacon/client/Waypoints.java'
+		}
+	}
+	test { java { srcDir "$client/src/test/java" } }
+}
+dependencies {
+	testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { toolchain.languageVersion.set(JavaLanguageVersion.of(25)) }
+test { useJUnitPlatform(); systemProperty 'itembeacon.client.dir', client.absolutePath }

@@ -23,14 +23,16 @@ import java.util.*;
  * <li>Beacon positions, for the mod's model swap (Glowing Glass's shape): once a player's mod has said hello, every
  * chunk sent to that player is followed by the chunk's beacons; the mod can ask about chunks it had before; a chunk
  * whose beacons change is pushed again.</li>
- * <li>Searching: opening a beacon sends the summary (in pages); a {@code pick} gets the places holding that item
- * (and sets the player's waypoints); opening a waypoint's container sends {@code opened}.</li>
+ * <li>Searching: opening a beacon sends the summary (in pages); a {@code pick} gets the places holding that item;
+ * {@code show} sets the player's waypoints to them (or the nearest), {@code clear} clears them; opening a waypoint's
+ * container sends {@code opened}.</li>
  * </ul>
  */
 public final class ClientBridge implements PluginMessageListener, Listener {
     public static final List<String> INCOMING = Protocol.SERVERBOUND.stream().map(Protocol::channel).toList();
     public static final List<String> OUTGOING = Protocol.CLIENTBOUND.stream().map(Protocol::channel).toList();
     static final String HELLO = Protocol.channel(Protocol.HELLO), QUERY = Protocol.channel(Protocol.QUERY), PICK = Protocol.channel(Protocol.PICK),
+        SHOW = Protocol.channel(Protocol.SHOW), CLEAR = Protocol.channel(Protocol.CLEAR),
         WELCOME = Protocol.channel(Protocol.WELCOME), CHUNK = Protocol.channel(Protocol.CHUNK), SUMMARY = Protocol.channel(Protocol.SUMMARY),
         PLACES = Protocol.channel(Protocol.PLACES), OPENED = Protocol.channel(Protocol.OPENED);
     static final int MESSAGES_PER_SECOND = 40;
@@ -96,6 +98,11 @@ public final class ClientBridge implements PluginMessageListener, Listener {
                 for (ChunkPos c : Protocol.readQuery(message)) if (w.queued.size() < MAX_QUEUED) w.queued.add(c.key());
             } else if (channel.equals(PICK)) {
                 pick(player, Protocol.readPick(message));
+            } else if (channel.equals(SHOW)) {
+                show(player, Protocol.readShow(message));
+            } else if (channel.equals(CLEAR)) {
+                Protocol.readClear(message);
+                waypoints.clear(player);
             }
         } catch (IllegalArgumentException ignored) {
             // A malformed message from a modified client: ignore it.
@@ -111,12 +118,20 @@ public final class ClientBridge implements PluginMessageListener, Listener {
         for (byte[] page : Protocol.summary(s.id(), beacon, search.summary(s))) outbox.send(p, SUMMARY, page);
     }
 
+    /** The places of a picked item (waypoints only change with {@code show}). */
     void pick(Player p, Protocol.Pick pick) {
         Search.Session s = search.session(p.getUniqueId());
         if (s == null || s.id() != pick.session() || !search.usable(p, s)) return;   // not at the beacon any more
-        List<Place> places = search.places(s, pick.item());
-        waypoints.show(p, places, false);
-        outbox.send(p, PLACES, Protocol.places(s.id(), pick.item(), places));
+        outbox.send(p, PLACES, Protocol.places(s.id(), pick.item(), search.places(s, pick.item())));
+    }
+
+    /** Sets the player's waypoints to the item's places (or the nearest one). */
+    void show(Player p, Protocol.Show show) {
+        Search.Session s = search.session(p.getUniqueId());
+        if (s == null || s.id() != show.session() || !search.usable(p, s)) return;
+        List<Place> places = search.places(s, show.item());
+        if (show.nearestOnly()) places = places.stream().filter(Place::sameDimension).limit(1).toList();
+        waypoints.show(p, places, show.outlines());
     }
 
     /** A waypoint's container was opened: the mod clears it. */

@@ -7,3 +7,6 @@ radius: 64
 
 # How long waypoints last (minutes). They also clear when you open that container, or by hand.
 waypoint-minutes: 10
+
+# Enchanting-table glyphs drifting into beacons near players (everyone sees them, no mod needed).
+particles: true

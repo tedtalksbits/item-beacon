@@ -75,6 +75,17 @@ public final class Beacons implements Listener {
 
     public int count() { int n = 0; for (BlockSet s : chunks.values()) n += s.size(); return n; }
 
+    /** Every beacon in a loaded chunk of {@code w} (a stale record included; callers check {@link #is}). */
+    public List<Block> loaded(World w) {
+        List<Block> out = new ArrayList<>();
+        for (var e : chunks.entrySet()) {
+            if (!e.getKey().world().equals(w.getUID())) continue;
+            int cx = e.getKey().x(), cz = e.getKey().z();
+            for (int p : e.getValue().positions()) out.add(w.getBlockAt((cx << 4) + BlockSet.x(p), BlockSet.y(p), (cz << 4) + BlockSet.z(p)));
+        }
+        return out;
+    }
+
     /** Runs {@code changes}, announcing each changed chunk once at the end (pistons, explosions). */
     public void batch(Runnable changes) {
         if (batched != null) { changes.run(); return; }

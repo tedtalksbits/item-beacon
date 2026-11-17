@@ -2,8 +2,8 @@
 
 Find your own stuff. Craft an Item Beacon, stand at it, browse everything stored in your containers (with totals),
 pick one item, and get waypoints to every container holding it. A Paper plugin (ownership, contents, search; works
-for everyone) plus, from slice 2, a Fabric client mod (the picker screen, beams, an x-ray outline through the ground,
-on-screen markers). Players without the mod get a chest-style menu and glowing outlines.
+for everyone) plus a Fabric client mod (the beacon's own look and the picker screen; beams, an x-ray outline and
+on-screen markers come in slice 3). Players without the mod get a chest-style menu and glowing outlines.
 
 By **tedtalksbits**. Minecraft / Paper 26.3.
 
@@ -24,9 +24,21 @@ By **tedtalksbits**. Minecraft / Paper 26.3.
   Containers in another dimension are listed with a label ("in the Nether") and get no waypoint.
 - **Waypoints** clear when you open that container, after 10 minutes (config `waypoint-minutes`), or by hand.
 - **Breaking** a container (anyone, explosions, fire) removes it from its owner's list.
+- **Particles:** enchanting-table glyphs drift into a beacon when a player is near (everyone sees them; config
+  `particles: false` turns them off).
 - `/itembeacon info`: who owns the container you look at. `/itembeacon demo` (creative): a beacon and some filled
   containers around you. `/itembeacon owner <player|clear>` (ops): give the container you look at to someone, or to
   nobody.
+
+## With the mod
+
+Right-clicking a beacon opens the Item Beacon screen. Left: everything you own as item icons with totals (1.5k),
+most first or A-Z, a search box and filters (Blocks, Tools, Food, Redstone, Ingredients, from the creative tabs);
+items only known from "last seen" containers have a darker slot. Click one: the right side lists the containers
+holding it, nearest first, with the count, distance, "below you", what it's inside, and "last seen" for ones not
+read just now; other dimensions last. "Show waypoints" or "Nearest only" sets the waypoints (outlined by the server
+until slice 3), "Clear waypoints" clears them. The block and item look like the owner's chosen draft; a creative tab
+holds the beacon. `/itembeaconmod` says what the mod knows.
 
 ## Without the mod
 
@@ -38,6 +50,7 @@ chat lists them with distance, height and "last seen". The bottom row has previo
 
 - Server: `beacon-plugin-<version>.jar` in `plugins/`, restart. Data: `plugins/ItemBeacon/players/` (one small file
   per player) and `enderchests.bin`; beacons are stored in the world's chunks.
-- Players: the client mod comes with slice 2.
+- Players (optional): `item-beacon-client-<version>.jar` plus Fabric API in `.minecraft/mods` (Fabric Loader 0.19.5,
+  Minecraft 26.3).
 
 Development: `AGENTS.md`, `docs/`.

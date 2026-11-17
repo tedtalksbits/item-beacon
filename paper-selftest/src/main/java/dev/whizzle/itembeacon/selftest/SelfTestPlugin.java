@@ -151,6 +151,17 @@ public final class SelfTestPlugin extends JavaPlugin {
             return ok ? null : "crafter dropped " + got;
         }));
 
+        steps.add(new Step("creative tab: an item built the way the mod's tab builds it is a real Item Beacon and stacks with crafted ones", () -> { }, 1, () -> {
+            // The same three components fabric-client's CreativeTab.stack sets.
+            String json = "{\"id\":\"minecraft:lodestone\",\"count\":1,\"components\":{"
+                + "\"minecraft:custom_data\":\"{PublicBukkitValues:{\\\"itembeacon:beacon\\\":1b}}\","
+                + "\"minecraft:item_name\":\"Item Beacon\","
+                + "\"minecraft:custom_model_data\":{\"strings\":[\"itembeacon:item_beacon\"]}},\"DataVersion\":" + Bukkit.getUnsafe().getDataVersion() + "}";
+            ItemStack fromTab = Bukkit.getUnsafe().deserializeItemFromJson(com.google.gson.JsonParser.parseString(json).getAsJsonObject());
+            return all(BeaconItem.is(fromTab) ? null : "the tab's item isn't a beacon: " + Bukkit.getUnsafe().serializeItemAsJson(fromTab),
+                fromTab.isSimilar(BeaconItem.create(1)) ? null : "the tab's item wouldn't stack with a crafted one: "
+                    + Bukkit.getUnsafe().serializeItemAsJson(fromTab) + " vs " + Bukkit.getUnsafe().serializeItemAsJson(BeaconItem.create(1)));
+        }));
         int bb = 10;
         steps.add(new Step("beacon: breakNaturally drops one Item Beacon and forgets the record", () -> beaconAt(bb, 0).breakNaturally(new ItemStack(Material.DIAMOND_PICKAXE)), 3,
             () -> all(droppedOneBeacon(at(bb, 0)), beacons.recorded(at(bb, 0)) ? "record still there" : null)));
@@ -387,6 +398,11 @@ public final class SelfTestPlugin extends JavaPlugin {
             return all(beacons.is(beacon) ? null : "no beacon", total(demo, Material.IRON_INGOT) == 126 ? null : "iron " + total(demo, Material.IRON_INGOT),
                 places.size() == 5 ? null : "places " + places.size(), places.stream().allMatch(Protocol.Place::live) ? null : "not all live: " + places,
                 Demo.build(at(d, 0).getLocation(), BlockFace.EAST, demo, beacons, index) != null ? null : "built a second demo over the first");
+        }));
+        steps.add(new Step("particles: the loaded beacons are listed and a particle tick runs (nobody near: nothing spawned)", () -> { }, 1, () -> {
+            List<Block> loaded = beacons.loaded(w);
+            new Particles(beacons).tick(List.of(w));
+            return loaded.stream().anyMatch(b -> b.equals(at(d + 3, 0))) ? null : "the demo beacon isn't in " + loaded.size() + " loaded beacons";
         }));
         steps.add(new Step("protocol: a chunk answer lists the chunk's beacons", () -> { }, 1, () -> {
             Block b = at(d + 3, 0);

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "itembeacon:block/item_beacon_side",
+    "top": "itembeacon:block/item_beacon_top",
+    "bottom": "minecraft:block/lodestone_top"
+  }
+}

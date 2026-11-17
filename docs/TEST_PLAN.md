@@ -1,15 +1,16 @@
 # Test plan: Item Beacon
 
-**Slice 1, the server side (plugin 0.1.0, no mod yet).** The self-test passed on a real Paper 26.3-211 server
-(22 checks) and 19 unit tests pass; **nothing has been tried by a player yet**. Everything below is what needs you:
-opening containers, the menu, the outlines.
+**Slice 2, the mod (client 0.1.0, tests 23-36), plus slice 1 (plugin 0.1.0, tests 1-22).** Nothing has been tried
+by a player yet. Checked here: the mod builds against 26.3 / Fabric API 0.164.0 and loads in a real Fabric Loader
+(mixin audit), 10 client tests, 20 plugin unit tests, and the self-test on a real Paper 26.3-211 server (24 checks).
+Tests 1-22 are without the mod (any client); 23-36 with it.
 
 ## Setup (once, about 5 minutes)
 
-1. Double-click `run\build-and-install.cmd`. It stops the test server (`..\blueprints-mc\run\local-paper`), builds
-   and tests the plugin, installs `plugins\ItemBeacon.jar`, then offers to start the server. (No client mod yet: it
-   skips that part.)
-2. Join with any client (no mod needed for slice 1).
+1. Close Minecraft (Windows won't replace a mod jar the game has open).
+2. Double-click `run\build-and-install.cmd`. It stops the test server (`..\blueprints-mc\run\local-paper`), builds
+   and tests both parts, installs `plugins\ItemBeacon.jar` and the mod in `%APPDATA%\.minecraft\mods\`, then offers
+   to start the server. For tests 1-22, join **without** the mod (another launcher profile, or move the jar out).
 3. In creative, face open ground and run **`/itembeacon demo`**: an Item Beacon 3 blocks ahead, a chest to one side
    (iron loose, in a red shulker box and in a bundle), a barrel to the other, a furnace behind the beacon, a chest
    buried below, and a chest minecart. Iron is in all of them (126 total). You also get a beacon item.
@@ -41,6 +42,27 @@ opening containers, the menu, the outlines.
 | 21 | Restart the server, open the beacon | Everything is still there (`plugins/ItemBeacon/players/`). |
 | 22 | `/itembeacon owner <name>` and `/itembeacon owner clear` on a chest (op) | The chest moves to that player's list, or to nobody's. |
 
+### With the mod (client 0.1.0)
+
+Launch **fabric-loader-26.3** with the mod and join. `/itembeaconmod` should say "connected".
+
+| # | Do this | Expect |
+|---|---|---|
+| 23 | Look at the demo beacon, and hold a beacon item | The owner's chosen look: lodestone sides with a glowing cyan core, compass-rose top, lodestone bottom. Same for the item in hand and in the inventory. Plain lodestones still look like lodestones. |
+| 24 | Creative inventory | An "Item Beacon" tab with the beacon; search "beacon" finds it. One taken from the tab stacks with a crafted one. |
+| 25 | Right-click the demo beacon | The Item Beacon screen (not the chest menu): item icons with totals, iron shows 126, most first. |
+| 26 | Hover an item | Its name, "N in M containers". |
+| 27 | Type "iron" in the search box | Only iron things. Clear it: everything back. |
+| 28 | Click Blocks, Tools, Food, Redstone, Ingredients, All | The grid narrows to that group (the selected filter's button greys out). |
+| 29 | Click "Sort: most first" | "Sort: A-Z", alphabetical; again: back. |
+| 30 | Click the iron | Right side: Iron Ingot, 126 in 5 containers; rows nearest first: the chest "(in Red Shulker Box, Bundle)", the barrel, the furnace, the buried chest "below you", the chest minecart; each with xN and distance in m. |
+| 31 | "Show waypoints (5)" | "5 waypoints for 10 min." Close the screen: the five glowing outlines (server-drawn until slice 3). |
+| 32 | Open one of them | Its outline goes. `/itembeaconmod`: one waypoint fewer. |
+| 33 | Back at the beacon: iron, "Nearest only" | Only the nearest is outlined. "Clear waypoints": none. |
+| 34 | A container far away (test 18) and one in the Nether (test 19) | Far: a grey row, "last seen N min ago". Nether: "in the Nether", last; neither gets an outline. |
+| 35 | Lots of items (a few chests of different things), scroll over the grid and over the list | Both scroll. |
+| 36 | Stand near a beacon (with or without the mod) | Enchanting glyphs drift into it. |
+
 ## ⚠️ Known limits and decisions for you
 
 1. **The default radius** (64, config `radius`): try it and tell me if it should change. The radius only decides
@@ -53,7 +75,17 @@ opening containers, the menu, the outlines.
 5. **Hoppers moving items** aren't followed as they happen: a container's list updates when it's opened and closed,
    when its chunk loads or unloads, and when you open a beacon within the radius.
 6. **Glowing outlines** use the server's glowing effect (one colour, aqua); only you see them. Up to 64, within 160
-   blocks and in loaded chunks; the rest are only in the chat list. With the mod (slice 2) they become beams, x-ray
-   outlines and markers.
-7. **Not checked by the self-test, only by you:** a player opening, closing, placing and breaking; the menu; the
-   outlines; the compass guard; ender chest contents (they need a player).
+   blocks and in loaded chunks; the rest are only in the chat list. **With the mod they're the same outlines for now**:
+   slice 3 replaces them with beams, x-ray outlines and on-screen markers.
+7. **Not checked by the self-test, only by you:** a player opening, closing, placing and breaking; the menu and the
+   screen; the outlines; the compass guard; ender chest contents (they need a player).
+8. **The block and item textures are your chosen draft** (`drafts\draft_chosen_*.png`), as `item_beacon_side.png` and
+   `item_beacon_top.png` in `fabric-client/src/main/resources/assets/itembeacon/textures/block/`. Replace them with your
+   redraw (same names, 16 x 16, opaque; a test checks) and rebuild. The bottom is a plain lodestone top.
+9. **Filters come from the creative tabs** (Blocks = building, coloured, natural and functional blocks; Tools = tools
+   and combat). An item can be in two (redstone blocks are blocks too). Say if you'd like other groups.
+10. **Particles**: two glyphs per beacon every quarter second, only near players; `particles: false` in the config
+   turns them off. Not seen in a game yet.
+11. **Nothing on screen is checked here**: the cloud workspace can't run the 26.3 client. Likely suspects if
+   something looks wrong: the screen's layout at your GUI scale (send a screenshot), an item that shows as a barrier
+   (the mod couldn't read it), Sodium/Iris not calling Fabric's model hook (the beacon stays a lodestone).

@@ -58,6 +58,9 @@ class ProtocolTest {
         assertEquals(new Protocol.Welcome(Protocol.VERSION, 64, 600), Protocol.readWelcome(Protocol.welcome(64, 600)));
         assertEquals(new Protocol.Pick(5, 77), Protocol.readPick(Protocol.pick(5, 77)));
         assertEquals("e:abc", Protocol.readOpened(Protocol.opened("e:abc")));
+        assertEquals(new Protocol.Show(4, 2, true, false), Protocol.readShow(Protocol.show(4, 2, true, false)));
+        Protocol.readClear(Protocol.clear());
+        assertThrows(IllegalArgumentException.class, () -> Protocol.readClear(new byte[] {0}));
         var q = List.of(new Protocol.ChunkPos(-3, 4), new Protocol.ChunkPos(100, -100));
         assertEquals(q, Protocol.readQuery(Protocol.query(q)));
         BlockSet s = new BlockSet();

@@ -13,8 +13,8 @@ public final class Protocol {
     public static final int VERSION = 1;
     public static final String NAMESPACE = "itembeacon";
     public static final String HELLO = "hello", WELCOME = "welcome", QUERY = "query", CHUNK = "chunk",
-        SUMMARY = "summary", PICK = "pick", PLACES = "places", OPENED = "opened";
-    public static final List<String> SERVERBOUND = List.of(HELLO, QUERY, PICK);
+        SUMMARY = "summary", PICK = "pick", PLACES = "places", SHOW = "show", CLEAR = "clear", OPENED = "opened";
+    public static final List<String> SERVERBOUND = List.of(HELLO, QUERY, PICK, SHOW, CLEAR);
     public static final List<String> CLIENTBOUND = List.of(WELCOME, CHUNK, SUMMARY, PLACES, OPENED);
     /** Most chunks in one query. */
     public static final int MAX_QUERY = 64;
@@ -173,6 +173,24 @@ public final class Protocol {
         in.end();
         return new Places(session, item, out);
     }
+
+    // ---- show (C->S): VarInt session, VarInt item id, Bool nearest only, Bool outlines ----
+    // Sets the player's waypoints to the places of that item (all, or the nearest only), replacing any before. With
+    // outlines, the server also draws its glowing outlines (for a mod that doesn't draw waypoints itself yet).
+    public record Show(int session, int item, boolean nearestOnly, boolean outlines) {}
+    public static byte[] show(int session, int item, boolean nearestOnly, boolean outlines) {
+        return new Wire.Writer().varInt(session).varInt(item).bool(nearestOnly).bool(outlines).bytes();
+    }
+    public static Show readShow(byte[] data) {
+        Wire.Reader in = new Wire.Reader(data);
+        Show s = new Show(in.varInt(), in.varInt(), in.bool(), in.bool());
+        in.end();
+        return s;
+    }
+
+    // ---- clear (C->S): empty. Clears the player's waypoints (by hand). ----
+    public static byte[] clear() { return new byte[0]; }
+    public static void readClear(byte[] data) { new Wire.Reader(data).end(); }
 
     // ---- opened (S->C): UTF container id. The player opened a container they had a waypoint to: clear it. ----
     public static byte[] opened(String id) { return new Wire.Writer().utf(id).bytes(); }

@@ -67,6 +67,15 @@ class ClientBridgeTest {
         assertTrue(sent.isEmpty());
     }
 
+    @Test void showWithoutASessionIsIgnoredAndClearAnswersNothing() {
+        Player p = server.addPlayer();
+        bridge.onPluginMessageReceived(ClientBridge.SHOW, p, Protocol.show(1, 0, false, true));
+        bridge.onPluginMessageReceived(ClientBridge.CLEAR, p, Protocol.clear());
+        bridge.onPluginMessageReceived(ClientBridge.CLEAR, p, new byte[] {1});
+        assertTrue(sent.isEmpty());
+        assertTrue(waypoints.of(p).isEmpty());
+    }
+
     @Test void tooManyMessagesPerSecondAreDropped() {
         Player p = server.addPlayer();
         bridge.clock = () -> 5;

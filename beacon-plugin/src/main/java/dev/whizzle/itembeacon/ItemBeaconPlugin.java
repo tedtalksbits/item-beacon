@@ -65,6 +65,10 @@ public class ItemBeaconPlugin extends JavaPlugin implements Listener, TabExecuto
         tasks.add(getServer().getScheduler().runTaskTimer(this, () -> { keeper.tick(); tracker.tick(); bridge.tick(); }, 1, 1));
         tasks.add(getServer().getScheduler().runTaskTimer(this, waypoints::tick, 20, 20));
         tasks.add(getServer().getScheduler().runTaskTimer(this, index::save, 600, 600));
+        if (getConfig().getBoolean("particles", true)) {
+            Particles particles = new Particles(beacons);
+            tasks.add(getServer().getScheduler().runTaskTimer(this, () -> particles.tick(Bukkit.getWorlds()), 5, 5));
+        }
     }
 
     @Override
