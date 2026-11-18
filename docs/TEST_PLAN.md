@@ -62,6 +62,7 @@ Launch **fabric-loader-26.3** with the mod and join. `/itembeaconmod` should say
 | 34 | A container far away (test 18) and one in the Nether (test 19) | Far: a grey row, "last seen N min ago". Nether: "in the Nether", last; neither gets an outline. |
 | 35 | Lots of items (a few chests of different things), scroll over the grid and over the list | Both scroll. |
 | 36 | Stand near a beacon (with or without the mod) | Enchanting glyphs drift into it. |
+| 37 | Client 0.1.1: right-click a beacon holding a block, many times (also with a block in the off hand) | The screen opens; no "Block placed" subtitle, no sound, no flash of the block. Sneak-right-click with a block still places it. |
 
 ## ⚠️ Known limits and decisions for you
 
@@ -86,6 +87,9 @@ Launch **fabric-loader-26.3** with the mod and join. `/itembeaconmod` should say
    and combat). An item can be in two (redstone blocks are blocks too). Say if you'd like other groups.
 10. **Particles**: two glyphs per beacon every quarter second, only near players; `particles: false` in the config
    turns them off. Not seen in a game yet.
-11. **Nothing on screen is checked here**: the cloud workspace can't run the 26.3 client. Likely suspects if
+11. **Without the mod, right-clicking a beacon with a block in hand still flashes the block** (and plays its place
+   sound) before the server takes it back: an unmodded game sees a lodestone and places the block itself. Nothing
+   server-side can stop that. The mod fixes it from client 0.1.1.
+12. **Nothing on screen is checked here**: the cloud workspace can't run the 26.3 client. Likely suspects if
    something looks wrong: the screen's layout at your GUI scale (send a screenshot), an item that shows as a barrier
    (the mod couldn't read it), Sodium/Iris not calling Fabric's model hook (the beacon stays a lodestone).

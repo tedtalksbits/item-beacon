@@ -17,7 +17,7 @@ public class MixinAudit implements PreLaunchEntrypoint {
             "net.minecraft.client.gui.screens.Screen", "net.minecraft.client.gui.GuiGraphicsExtractor",
             "dev.whizzle.itembeacon.client.ItemBeaconClient", "dev.whizzle.itembeacon.client.BeaconCache",
             "dev.whizzle.itembeacon.client.SummaryAssembler", "dev.whizzle.itembeacon.client.Waypoints",
-            "dev.whizzle.itembeacon.client.Format", "dev.whizzle.itembeacon.client.CreativeTab",
+            "dev.whizzle.itembeacon.client.Format", "dev.whizzle.itembeacon.client.UseRule", "dev.whizzle.itembeacon.client.CreativeTab",
             "dev.whizzle.itembeacon.client.render.BeaconModels", "dev.whizzle.itembeacon.client.render.BeaconBlockModel",
             "dev.whizzle.itembeacon.client.ui.Items", "dev.whizzle.itembeacon.client.ui.PickerScreen",
             "dev.whizzle.itembeacon.client.net.Net", "dev.whizzle.itembeacon.client.net.RawPayload"};

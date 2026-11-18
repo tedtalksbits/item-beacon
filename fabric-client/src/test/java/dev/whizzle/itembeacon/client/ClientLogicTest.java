@@ -71,6 +71,15 @@ class ClientLogicTest {
         assertEquals("1.5 km", Format.distance(1500));
     }
 
+    /** Mirrors the plugin's BeaconKeeper.onUse: only sneaking with an item (not a compass) places it. */
+    @Test void useRuleMatchesThePlugin() {
+        assertTrue(UseRule.beaconUse(false, false, false));   // a block in hand: open, don't place
+        assertTrue(UseRule.beaconUse(false, true, false));
+        assertTrue(UseRule.beaconUse(true, false, true));     // sneaking with a compass: never bind
+        assertTrue(UseRule.beaconUse(true, true, false));
+        assertFalse(UseRule.beaconUse(true, false, false));   // sneaking with a block: place it
+    }
+
     @Test void waypointsClearOnOpenTimeOrHand() {
         long[] now = {1000};
         Waypoints.clock = () -> now[0];

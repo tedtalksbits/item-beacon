@@ -55,7 +55,13 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 - `ci/mixin-audit/`: loads the mod in a real Fabric Loader (no mixins of our own yet; checks the model wrapper and
   that the screen's overrides still override). `ci/client-pure-tests/`: the mod's pure-Java tests without Loom.
 
-## Status (2026-11-16)
+## Status (2026-11-17)
+
+- **Client 0.1.1: right-clicking a beacon with a block no longer places it client-side** (owner: block placed
+  subtitle, sound and a brief flash, often). The game saw a plain lodestone and predicted the placement; the server
+  then reverted it. `UseBlockCallback` returns SUCCESS for a beacon (by `BeaconCache`, `UseRule` mirrors the plugin's
+  sneak rule), which sends the click to the server without placing (Fabric's `MultiPlayerGameModeMixin`, read from
+  the jar). Unmodded clients still flash (TEST_PLAN limit 11). Not yet seen in game (test 37).
 
 - **Slice 2 (the mod) done, not yet in a real game.** Client 0.1.0, plugin still 0.1.0 (unreleased), protocol 1
   (unreleased, so changed in place: `pick` no longer sets waypoints; new `show` and `clear`).
@@ -105,6 +111,7 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 | Without the mod: chest-style menu, glowing block-display outlines only that player sees, chat list | Kickoff ("whatever is trivial") |
 | Recipe: shaped column compass / lodestone / eye of ender; the lodestone must be a plain one | Owner |
 | Carrier: lodestone; a compass never binds to a beacon | Owner |
+| The mod claims right-clicks on beacons (`UseBlockCallback`), so the game never places a held block on one unless sneaking | Owner's bug report, client 0.1.1 |
 | Look: C's sides (lodestone with a glowing core) with A's compass-rose top; the owner redraws (drafts in `Claude outputs\item-beacon\drafts\`); bottom: plain lodestone top | Owner; in the mod since client 0.1.0 |
 | Enchanting-table glyphs drifting into beacons near players, server-side, config `particles` | Owner (low priority; cheap, so done) |
 | The screen follows the mockup (`item-beacon-picker.png`): grid left, places right; filters from creative tab groups (All, Blocks, Tools, Food, Redstone, Ingredients); sort most first / A-Z; items only in last-seen containers get a darker slot | Kickoff |

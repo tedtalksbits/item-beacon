@@ -13,6 +13,11 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ServerboundPlayChannelEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
@@ -72,6 +77,16 @@ public final class ItemBeaconClient implements ClientModInitializer {
             BEACONS.forget(pos);
         });
         ClientTickEvents.END_CLIENT_TICK.register(ItemBeaconClient::tick);
+        // Right-clicking a beacon is a use, like a chest: without this the game sees a plain lodestone, places the held
+        // block itself (sound, subtitle, a flash) and the server takes it back. SUCCESS sends the click to the server
+        // (Fabric's MultiPlayerGameModeMixin) without placing anything here.
+        UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
+            if (!level.isClientSide() || !active()) return InteractionResult.PASS;
+            var pos = hit.getBlockPos();
+            if (!BEACONS.at(pos.getX(), pos.getY(), pos.getZ()) || !level.getBlockState(pos).is(Blocks.LODESTONE)) return InteractionResult.PASS;
+            ItemStack held = player.getItemInHand(hand);
+            return UseRule.beaconUse(player.isSecondaryUseActive(), held.isEmpty(), held.is(Items.COMPASS)) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        });
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, context) ->
             dispatcher.register(ClientCommands.literal("itembeaconmod").executes(c -> { status(c.getSource().getClient()); return 1; })));
     }
