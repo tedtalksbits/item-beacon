@@ -57,6 +57,13 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 
 ## Status (2026-11-17)
 
+- **Client 0.1.2: creative search works again** (owner: search found nothing, screenshot). Opening the beacon screen
+  before the creative inventory built the creative tabs (for the filters) without the creative search index; the
+  creative screen then saw nothing to rebuild and never indexed. `ui/Items.filters` now does exactly what
+  `CreativeModeInventoryScreen.tryRebuildTabContents` does (same operator flag; on a rebuild, `updateCreativeTooltips`
+  and `updateCreativeTags`), and `ResourcesTest` fails if any code rebuilds the tabs without both. Not yet seen in
+  game (test 38).
+
 - **Client 0.1.1: right-clicking a beacon with a block no longer places it client-side** (owner: block placed
   subtitle, sound and a brief flash, often). The game saw a plain lodestone and predicted the placement; the server
   then reverted it. `UseBlockCallback` returns SUCCESS for a beacon (by `BeaconCache`, `UseRule` mirrors the plugin's
@@ -163,6 +170,8 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 - `Chest#getBlockInventory` is one half's own inventory; `getInventory` is the whole double chest.
 - MockBukkit: no real chunk persistence or block entities; test containers in the self-test.
 - The flat self-test world is only 3 blocks deep above bedrock: the demo buries its chest as deep as it can (2-4).
+- Never call `CreativeModeTabs.tryRebuildTabContents` without also updating the creative search trees (see client
+  0.1.2); `ResourcesTest` checks.
 - Mod UI (from Shulker Styles, tested in `ResourcesTest`): mouse buttons are SDL-numbered
   (`InputConstants.MOUSE_BUTTON_*`); the GUI font has no ✓ ✕ ≠ ≤ ≥ →. `Screen.extractRenderStateWithTooltipAndSubtitles`
   calls `extractBackground`, then `extractRenderState` (widgets): draw the panel by overriding `extractBackground`

@@ -63,6 +63,7 @@ Launch **fabric-loader-26.3** with the mod and join. `/itembeaconmod` should say
 | 35 | Lots of items (a few chests of different things), scroll over the grid and over the list | Both scroll. |
 | 36 | Stand near a beacon (with or without the mod) | Enchanting glyphs drift into it. |
 | 37 | Client 0.1.1: right-click a beacon holding a block, many times (also with a block in the off hand) | The screen opens; no "Block placed" subtitle, no sound, no flash of the block. Sneak-right-click with a block still places it. |
+| 38 | Client 0.1.2: start the game, join, open a beacon **first**, then the creative inventory and search "plan" (or anything) | Search finds items (it was empty). Also after reopening the beacon a few times. |
 
 ## ⚠️ Known limits and decisions for you
 

@@ -61,7 +61,7 @@ public final class PickerScreen extends Screen {
     protected void init() {
         if (all.isEmpty() && !summary.items().isEmpty()) {
             var level = minecraft.level;
-            Map<Item, EnumSet<Items.Filter>> filters = Items.filters(level.enabledFeatures(), level.registryAccess());
+            Map<Item, EnumSet<Items.Filter>> filters = Items.filters(minecraft);
             for (SummaryItem s : summary.items()) {
                 ItemStack stack = Items.decode(s.item(), level.registryAccess());
                 String search = (stack.getHoverName().getString() + " " + BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().replace('_', ' ')).toLowerCase(Locale.ROOT);

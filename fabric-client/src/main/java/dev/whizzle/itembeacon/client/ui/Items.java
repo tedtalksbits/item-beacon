@@ -12,7 +12,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.client.Minecraft;
 
 import java.io.ByteArrayInputStream;
 import java.util.*;
@@ -63,12 +63,22 @@ public final class Items {
 
     /**
      * Which filters each item type belongs to, from the creative tabs (an item can be in more than one: redstone
-     * blocks are blocks too). Builds the tabs' contents if the creative screen hasn't yet.
+     * blocks are blocks too). Builds the tabs' contents if the creative screen hasn't yet, exactly as that screen does
+     * ({@code CreativeModeInventoryScreen.tryRebuildTabContents}, read from the 26.3 jar): same arguments, and when the
+     * tabs were rebuilt, the creative search index too. Rebuilding without the index left creative search empty
+     * (the creative screen then saw nothing to rebuild and never indexed).
      */
-    public static Map<Item, EnumSet<Filter>> filters(FeatureFlagSet features, HolderLookup.Provider registries) {
+    public static Map<Item, EnumSet<Filter>> filters(Minecraft mc) {
         Map<Item, EnumSet<Filter>> out = new HashMap<>();
         try {
-            CreativeModeTabs.tryRebuildTabContents(features, false, registries);
+            var level = mc.level;
+            HolderLookup.Provider registries = level.registryAccess();
+            boolean operator = mc.player.canUseGameMasterBlocks() && mc.options.operatorItemsTab().get();
+            if (CreativeModeTabs.tryRebuildTabContents(level.enabledFeatures(), operator, registries) && mc.getConnection() != null) {
+                List<ItemStack> search = List.copyOf(CreativeModeTabs.searchTab().getDisplayItems());
+                mc.getConnection().searchTrees().updateCreativeTooltips(registries, search);
+                mc.getConnection().searchTrees().updateCreativeTags(search);
+            }
             for (CreativeModeTab tab : CreativeModeTabs.allTabs()) {
                 var id = BuiltInRegistries.CREATIVE_MODE_TAB.getKey(tab);
                 Filter f = id == null ? null : TABS.get(id.toString());

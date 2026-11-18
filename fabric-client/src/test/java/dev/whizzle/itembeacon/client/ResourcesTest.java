@@ -51,6 +51,20 @@ class ResourcesTest {
         }
     }
 
+    /**
+     * Rebuilding the creative tabs must also rebuild the creative search index, as the creative screen does; otherwise
+     * creative search stays empty for the session (client 0.1.1 bug).
+     */
+    @Test void creativeTabRebuildAlsoUpdatesSearch() throws IOException {
+        try (Stream<Path> files = Files.walk(dir().resolve("src/main/java"))) {
+            for (Path f : files.filter(f -> f.toString().endsWith(".java")).toList()) {
+                String s = Files.readString(f);
+                if (!s.contains("tryRebuildTabContents(")) continue;
+                assertTrue(s.contains("updateCreativeTooltips(") && s.contains("updateCreativeTags("), f.getFileName() + " rebuilds the creative tabs without the search index");
+            }
+        }
+    }
+
     /** The GUI font has no ✓ ✕ ≠ ≤ ≥ →: they'd show as boxes. */
     @Test void noGlyphsTheFontLacks() throws IOException {
         try (Stream<Path> files = Files.walk(dir().resolve("src/main/java"))) {
