@@ -39,6 +39,13 @@ public final class ItemBeaconClient implements ClientModInitializer {
     public static final java.nio.file.Path SETTINGS_FILE = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("itembeacon.properties");
     /** Where the inventory tools go ({@code /itembeaconmod settings}). */
     public static ToolSettings SETTINGS = ToolSettings.load(SETTINGS_FILE);
+    /** Options > Controls > Key Binds > Item Beacon > Open settings; unbound until the player picks a key. */
+    static net.minecraft.client.KeyMapping SETTINGS_KEY;
+
+    public static void saveSettings() {
+        try { SETTINGS.save(SETTINGS_FILE); }
+        catch (java.io.IOException e) { LOG.warn("Couldn't save {}: {}", SETTINGS_FILE, e.toString()); }
+    }
     private static final SummaryAssembler SUMMARIES = new SummaryAssembler();
     /** From the server's welcome; 0 until it answers (or when the server doesn't have the plugin). */
     static int serverProtocol;
@@ -64,6 +71,9 @@ public final class ItemBeaconClient implements ClientModInitializer {
                 if (Minecraft.getInstance().gui.screen() instanceof PickerScreen s) s.places(p);
             },
             Protocol.OPENED, data -> Waypoints.opened(Protocol.readOpened(data))));
+        SETTINGS_KEY = net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper.registerKeyMapping(new net.minecraft.client.KeyMapping("key.itembeacon.settings",
+            com.mojang.blaze3d.platform.InputConstants.Type.KEYBOARD, com.mojang.blaze3d.platform.InputConstants.UNKNOWN.getValue(),
+            net.minecraft.client.KeyMapping.Category.register(Identifier.fromNamespaceAndPath("itembeacon", "main"))));
         BeaconModels.register();
         CreativeTab.register();
         dev.whizzle.itembeacon.client.inventory.InventoryTools.register();
@@ -105,6 +115,7 @@ public final class ItemBeaconClient implements ClientModInitializer {
 
     static void tick(Minecraft mc) {
         Waypoints.tick();
+        while (SETTINGS_KEY.consumeClick()) openSettings = true;
         if (openSettings && mc.gui.screen() == null) { openSettings = false; mc.gui.setScreen(new dev.whizzle.itembeacon.client.ui.SettingsScreen(null)); }
         if (!active() || mc.level == null || TO_ASK.isEmpty()) return;
         List<ChunkPos> batch = new ArrayList<>(Protocol.MAX_QUERY);

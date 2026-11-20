@@ -63,6 +63,8 @@ public final class InventoryTools {
         final AbstractContainerScreen<?> screen;
         final ContainerScreenAccessor pos;
         EditBox search;
+        /** "..." beside the search bar: shows the two placement choices at the top of the screen. */
+        Button gear, containerSpot, inventorySpot;
         final List<Button> containerButtons = new ArrayList<>(), playerButtons = new ArrayList<>();
         int containerTop = -1, playerTop = -1;
 
@@ -84,6 +86,22 @@ public final class InventoryTools {
             search.setMaxLength(50);
             search.setTooltip(Tooltip.create(Component.literal("Dims what doesn't match. Shulker boxes and bundles holding a match get a gold frame.")));
             Screens.getWidgets(screen).add(search);
+            gear = Button.builder(Component.literal("..."), b -> arrange(!containerSpot.visible)).bounds(0, 0, ROW, ROW)
+                .tooltip(Tooltip.create(Component.literal("Move the search bar and sort buttons"))).build();
+            Screens.getWidgets(screen).add(gear);
+            containerSpot = Button.builder(containerLabel(), b -> {
+                ItemBeaconClient.SETTINGS.container = dev.whizzle.itembeacon.client.ToolSettings.next(ItemBeaconClient.SETTINGS.container);
+                ItemBeaconClient.saveSettings();
+                b.setMessage(containerLabel());
+            }).bounds(0, 0, 170, 16).build();
+            inventorySpot = Button.builder(inventoryLabel(), b -> {
+                ItemBeaconClient.SETTINGS.inventory = dev.whizzle.itembeacon.client.ToolSettings.next(ItemBeaconClient.SETTINGS.inventory);
+                ItemBeaconClient.saveSettings();
+                b.setMessage(inventoryLabel());
+            }).bounds(0, 0, 170, 16).build();
+            Screens.getWidgets(screen).add(containerSpot);
+            Screens.getWidgets(screen).add(inventorySpot);
+            arrange(false);
             if (ItemBeaconClient.active() && Net.canSend(Protocol.SORT)) {   // plugin 0.2.0 or newer
                 if (sortable(screen.getMenu()) && containerTop >= 0) addRow(containerButtons, false);
                 if (playerTop >= 0) addRow(playerButtons, true);
@@ -96,6 +114,15 @@ public final class InventoryTools {
                 search.keyPressed(key);   // typing goes to the search bar, not to the screen (E would close it, 1-9 swap slots)
                 return false;
             });
+        }
+
+        static Component containerLabel() { return Component.literal("Search + container: " + ItemBeaconClient.SETTINGS.container.label); }
+        static Component inventoryLabel() { return Component.literal("Inventory buttons: " + ItemBeaconClient.SETTINGS.inventory.label); }
+
+        /** Shows or hides the placement choices (they apply at once, so you see where things go). */
+        void arrange(boolean show) {
+            containerSpot.visible = show;
+            inventorySpot.visible = show && !playerButtons.isEmpty();
         }
 
         void addRow(List<Button> row, boolean player) {
@@ -120,9 +147,18 @@ public final class InventoryTools {
             var layout = ToolLayout.compute(new ToolLayout.Input(screen.width, screen.height, pos.itembeacon$left(), pos.itembeacon$top(),
                 pos.itembeacon$width(), pos.itembeacon$height(), !containerButtons.isEmpty(), containerTop, titleEnd, pos.itembeacon$titleY(),
                 !playerButtons.isEmpty(), playerTop, labelEnd, pos.itembeacon$inventoryLabelY()), ItemBeaconClient.SETTINGS);
-            search.setX(layout.search().x());
-            search.setY(layout.search().y());
-            search.setWidth(layout.search().w());
+            var r = layout.search();
+            search.setX(r.x());
+            search.setY(r.y());
+            search.setWidth(r.w() - ROW - 2);
+            gear.setX(r.x() + r.w() - ROW);
+            gear.setY(r.y());
+            // The placement choices: a fixed spot at the top centre, above anything the layout uses.
+            int cx = screen.width / 2;
+            containerSpot.setX(cx - 172);
+            containerSpot.setY(2);
+            inventorySpot.setX(cx + 2);
+            inventorySpot.setY(2);
             row(containerButtons, layout.containerRow());
             row(playerButtons, layout.playerRow());
         }

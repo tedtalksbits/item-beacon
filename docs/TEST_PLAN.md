@@ -1,6 +1,6 @@
 # Test plan: Item Beacon
 
-**Inventory search and sort (plugin 0.2.0, client 0.2.1, tests 39-53)**, after slices 1 and 2 (tests 1-38, all checked by the owner for v0.1.0). Nothing has been tried
+**Inventory search and sort (plugin 0.2.0, client 0.2.2, tests 39-55)**, after slices 1 and 2 (tests 1-38, all checked by the owner for v0.1.0). Nothing has been tried
 by a player yet. Checked here: the mod builds against 26.3 / Fabric API 0.164.0 and loads in a real Fabric Loader
 (mixin audit), 10 client tests, 20 plugin unit tests, and the self-test on a real Paper 26.3-211 server (24 checks).
 Tests 1-22 are without the mod (any client); 23-36 with it.
@@ -92,6 +92,8 @@ iron inside, a bundle with an apple.
 | 51 | Rename a chest with a long name (anvil), open it | Its buttons move to a row above the panel instead of covering the name. |
 | 52 | Try **Top** + **Bottom**, and **Left** + **Left** | Top: search and buttons in a row above the panel. Bottom: your buttons below the panel. Left: beside the panel on the left. |
 | 53 | Restart the game | Your choice is still set (`config/itembeacon.properties`). |
+| 54 | Client 0.2.2: in the shulker box screen click **...** next to the search bar | Two buttons at the top centre: "Search + container: ..." and "Inventory buttons: ...". Each click moves the tools at once; the container stays open. Click ... again: they hide. |
+| 55 | Options, Controls, Key Binds | An "Item Beacon" section with "Open settings", unbound. Bind a key, press it in the world: the settings screen. |
 
 ## ⚠️ Known limits and decisions for you
 
@@ -121,8 +123,8 @@ iron inside, a bundle with an apple.
    server-side can stop that. The mod fixes it from client 0.1.1.
 12. **Sorting needs the mod and plugin 0.2.0**: players without the mod have no buttons (no command either; say if
    you want `/sort`).
-13. **Where the tools sit is your choice** (`/itembeaconmod settings`; no Mod Menu button, as Mod Menu isn't in the
-   offline build cache: say if you want one and the next session can add it). Left can overlap the recipe book when
+13. **Where the tools sit is your choice**: the ... button on the screen, an unbound hotkey, or the command. No Mod
+   Menu entry (you don't run Mod Menu). Left can overlap the recipe book when
    it's open; at tiny windows any spot can overlap something.
 14. **Type order** comes from the creative menu (the mod reads it): items it doesn't list (rare) go last, by name.
 15. **Nothing on screen is checked here**: the cloud workspace can't run the 26.3 client. Likely suspects if

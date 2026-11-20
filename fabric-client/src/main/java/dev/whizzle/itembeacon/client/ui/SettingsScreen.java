@@ -8,9 +8,11 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-import java.io.IOException;
 
-/** {@code /itembeaconmod settings}: where the search bar and sort buttons go. Saved on Done. */
+/**
+ * Item Beacon settings: the hotkey (Options > Controls > Key Binds > Item Beacon, unbound by default) or
+ * {@code /itembeaconmod settings}. Where the search bar and sort buttons go. Saved on Done.
+ */
 public final class SettingsScreen extends Screen {
     private final Screen parent;
     private final ToolSettings edit = new ToolSettings();
@@ -49,8 +51,7 @@ public final class SettingsScreen extends Screen {
     @Override
     public void onClose() {
         ItemBeaconClient.SETTINGS = edit;
-        try { edit.save(ItemBeaconClient.SETTINGS_FILE); }
-        catch (IOException e) { ItemBeaconClient.LOG.warn("Couldn't save {}: {}", ItemBeaconClient.SETTINGS_FILE, e.toString()); }
+        ItemBeaconClient.saveSettings();
         minecraft.gui.setScreen(parent);
     }
 }

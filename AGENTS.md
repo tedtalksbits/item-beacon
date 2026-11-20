@@ -60,6 +60,12 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 
 ## Status (2026-11-19)
 
+- **Client 0.2.2: placement settings reachable without the command** (owner: the command is a bad experience; he
+  doesn't run Mod Menu). A "..." button beside the search bar shows two cycle buttons at the top centre of the
+  container screen (applied and saved at once; opening another screen would close the container); an unbound hotkey
+  (Options > Controls > Key Binds > Item Beacon > Open settings, like Blueprints' `Keys`) opens `ui/SettingsScreen`
+  from the world. Not yet seen in game (tests 54-55).
+
 - **Client 0.2.1: where the inventory tools sit is a setting** (owner: they clashed with Shulker Styles' icon slot on
   the right of a shulker box screen). `/itembeaconmod settings` (`ui/SettingsScreen`; opened on the next tick, once
   chat has closed) edits `ToolSettings` (config/itembeacon.properties): container group Right / Left / Top / Title
@@ -155,7 +161,7 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 | Demos only in creative | Same rule as the other projects |
 | Release tag = plugin version; the client will keep its own version | Same as the other projects |
 | Inventory sort: three buttons (Type like the creative menu / A-Z / Count), partial stacks merged; storage containers + the player's main 27 slots (never hotbar, armour, off-hand); anyone who can open it can sort; mod only | Owner, 2026-11-19 |
-| Tool placement is the player's choice (Right / Left / Top or Bottom / in the label rows), with fallbacks; no Mod Menu entry (not in the offline cache) | Owner, 2026-11-19 |
+| Tool placement is the player's choice (Right / Left / Top or Bottom / in the label rows), with fallbacks; reached by a "..." button on the screen (in place) or an unbound hotkey; no Mod Menu (the owner doesn't run it) | Owner, 2026-11-19 |
 | Inventory search: dims the rest, gold frame on shulker boxes / bundles holding a match; client-only, works on any server; every container screen but the creative inventory | Owner, 2026-11-19 |
 | The client works out the sort order (it knows creative order and names as the player reads them); the server only checks it's a permutation of a real container and merges | Kickoff for this feature |
 | After this project: re-dye for Glowing Glass (8 glowing glass of any colour around 1 dye) | Owner |
@@ -201,6 +207,8 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 - `Chest#getBlockInventory` is one half's own inventory; `getInventory` is the whole double chest.
 - MockBukkit: no real chunk persistence or block entities; test containers in the self-test.
 - The flat self-test world is only 3 blocks deep above bedrock: the demo buries its chest as deep as it can (2-4).
+- Never open another screen from a container screen to change something (it closes the container on the server):
+  show the controls inside it, as the "..." button does.
 - Never call `CreativeModeTabs.tryRebuildTabContents` without also updating the creative search trees (see client
   0.1.2); `ResourcesTest` checks.
 - Mod UI (from Shulker Styles, tested in `ResourcesTest`): mouse buttons are SDL-numbered

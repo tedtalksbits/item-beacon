@@ -50,7 +50,9 @@ On a server with the plugin (0.2.0 or newer), three sort buttons sit beside the 
 your inventory: **Type** (like the creative menu), **A-Z**, **Count** (what you have most of first). Partial stacks
 are merged.
 
-Where the tools sit is up to you: **`/itembeaconmod settings`**. Search bar and container buttons: Right, Left, Top
+Where the tools sit is up to you: click **...** next to the search bar (the two choices appear at the top of the
+screen and apply at once), or the **Open settings** key (Options, Controls, Key Binds, Item Beacon; unbound until you
+pick one), or `/itembeaconmod settings`. Search bar and container buttons: Right, Left, Top
 (a row above the panel) or In the title row (the buttons inside the panel next to the title, the search bar above).
 Your inventory buttons: Right, Left, Bottom (below the panel) or In the Inventory row. A spot that doesn't fit (a long
 container name, no room above or below) falls back to another. Saved in `config/itembeacon.properties`. Your inventory sort never touches the hotbar, armour or off-hand. Anyone who can open a container can
