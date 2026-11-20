@@ -3,6 +3,7 @@ package dev.whizzle.itembeacon.client.inventory;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.whizzle.itembeacon.client.ItemBeaconClient;
 import dev.whizzle.itembeacon.client.SortPlan;
+import dev.whizzle.itembeacon.client.ToolLayout;
 import dev.whizzle.itembeacon.client.mixin.ContainerScreenAccessor;
 import dev.whizzle.itembeacon.client.net.Net;
 import dev.whizzle.itembeacon.client.ui.Items;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
 public final class InventoryTools {
     private InventoryTools() {}
 
-    static final int COLUMN = 92, GAP = 4, BUTTON = 30, ROW = 14;
+    static final int COLUMN = ToolLayout.COLUMN, BUTTON = ToolLayout.BUTTON, ROW = ToolLayout.ROW;
     static final int DIM = 0xC0101010, FRAME = 0xFFFFC832;
 
     public static void register() {
@@ -111,17 +112,29 @@ public final class InventoryTools {
             }
         }
 
-        /** Beside the panel on the right, or on the left if the window is too narrow. */
+        /** Where {@link ItemBeaconClient#SETTINGS} puts things ({@link ToolLayout}); every frame, as the recipe book moves the panel. */
         void place() {
-            int left = pos.itembeacon$left(), top = pos.itembeacon$top();
-            int x = left + pos.itembeacon$width() + GAP;
-            if (x + COLUMN > screen.width - 2) x = Math.max(2, left - GAP - COLUMN);
-            search.setX(x);
-            search.setY(top);
-            int cy = top + Math.max(containerTop - 1, ROW + 2), py = top + playerTop - 1;
-            if (!containerButtons.isEmpty() && py < cy + ROW + 2) py = cy + ROW + 2;
-            for (int i = 0; i < containerButtons.size(); i++) { containerButtons.get(i).setX(x + i * (BUTTON + 1)); containerButtons.get(i).setY(cy); }
-            for (int i = 0; i < playerButtons.size(); i++) { playerButtons.get(i).setX(x + i * (BUTTON + 1)); playerButtons.get(i).setY(Math.max(py, top + ROW + 2)); }
+            var font = mc.font;
+            int titleEnd = screen.getTitle().getString().isEmpty() ? -1 : pos.itembeacon$titleX() + font.width(screen.getTitle());
+            int labelEnd = pos.itembeacon$inventoryLabelX() + font.width(pos.itembeacon$inventoryLabel());
+            var layout = ToolLayout.compute(new ToolLayout.Input(screen.width, screen.height, pos.itembeacon$left(), pos.itembeacon$top(),
+                pos.itembeacon$width(), pos.itembeacon$height(), !containerButtons.isEmpty(), containerTop, titleEnd, pos.itembeacon$titleY(),
+                !playerButtons.isEmpty(), playerTop, labelEnd, pos.itembeacon$inventoryLabelY()), ItemBeaconClient.SETTINGS);
+            search.setX(layout.search().x());
+            search.setY(layout.search().y());
+            search.setWidth(layout.search().w());
+            row(containerButtons, layout.containerRow());
+            row(playerButtons, layout.playerRow());
+        }
+
+        static void row(List<Button> buttons, ToolLayout.Rect r) {
+            if (r == null) return;
+            for (int i = 0; i < buttons.size(); i++) {
+                Button b = buttons.get(i);
+                b.setX(r.x() + i * (BUTTON + 1));
+                b.setY(r.y());
+                b.setHeight(r.h());
+            }
         }
 
         void dim(GuiGraphicsExtractor g) {

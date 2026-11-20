@@ -21,7 +21,7 @@ public class MixinAudit implements PreLaunchEntrypoint {
             "dev.whizzle.itembeacon.client.render.BeaconModels", "dev.whizzle.itembeacon.client.render.BeaconBlockModel",
             "dev.whizzle.itembeacon.client.ui.Items", "dev.whizzle.itembeacon.client.ui.PickerScreen",
             "dev.whizzle.itembeacon.client.net.Net", "dev.whizzle.itembeacon.client.net.RawPayload",
-            "dev.whizzle.itembeacon.client.SortPlan", "dev.whizzle.itembeacon.client.inventory.InventoryTools",
+            "dev.whizzle.itembeacon.client.SortPlan", "dev.whizzle.itembeacon.client.ToolLayout", "dev.whizzle.itembeacon.client.ToolSettings", "dev.whizzle.itembeacon.client.ui.SettingsScreen", "dev.whizzle.itembeacon.client.inventory.InventoryTools",
             "net.minecraft.client.gui.screens.inventory.AbstractContainerScreen", "dev.whizzle.itembeacon.client.mixin.ContainerScreenAccessor"};
         for (String t : targets) {
             try { Class.forName(t, false, cl); System.out.println("AUDIT loaded " + t); }   // loading applies the mixins; initialising would need the game's registries

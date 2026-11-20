@@ -1,6 +1,6 @@
 # Test plan: Item Beacon
 
-**Inventory search and sort (plugin 0.2.0, client 0.2.0, tests 39-48)**, after slices 1 and 2 (tests 1-38, all checked by the owner for v0.1.0). Nothing has been tried
+**Inventory search and sort (plugin 0.2.0, client 0.2.1, tests 39-53)**, after slices 1 and 2 (tests 1-38, all checked by the owner for v0.1.0). Nothing has been tried
 by a player yet. Checked here: the mod builds against 26.3 / Fabric API 0.164.0 and loads in a real Fabric Loader
 (mixin audit), 10 client tests, 20 plugin unit tests, and the self-test on a real Paper 26.3-211 server (24 checks).
 Tests 1-22 are without the mod (any client); 23-36 with it.
@@ -83,6 +83,16 @@ iron inside, a bundle with an apple.
 | 47 | Join a server without the plugin (or a single-player world) | Search bar still there and working; no sort buttons. |
 | 48 | Creative inventory | Unchanged (no extra search bar). |
 
+### Placement settings (client 0.2.1)
+
+| # | Do this | Expect |
+|---|---|---|
+| 49 | `/itembeaconmod settings` | A settings screen: "Search + container buttons: Right", "Your inventory buttons: Right", Done. Clicking a button cycles its choice. |
+| 50 | Set **In the title row** for both, Done, open the shulker box from your screenshot (with Shulker Styles) | Type / A-Z / Count inside the panel to the right of "Shulker Box" and of "Inventory" (slightly shorter buttons), the search bar just above the panel's top right. Nothing overlaps Shulker Styles' icon slot. |
+| 51 | Rename a chest with a long name (anvil), open it | Its buttons move to a row above the panel instead of covering the name. |
+| 52 | Try **Top** + **Bottom**, and **Left** + **Left** | Top: search and buttons in a row above the panel. Bottom: your buttons below the panel. Left: beside the panel on the left. |
+| 53 | Restart the game | Your choice is still set (`config/itembeacon.properties`). |
+
 ## ⚠️ Known limits and decisions for you
 
 1. **The default radius** (64, config `radius`): try it and tell me if it should change. The radius only decides
@@ -111,8 +121,9 @@ iron inside, a bundle with an apple.
    server-side can stop that. The mod fixes it from client 0.1.1.
 12. **Sorting needs the mod and plugin 0.2.0**: players without the mod have no buttons (no command either; say if
    you want `/sort`).
-13. **Sort and search sit beside the panel**, not inside it (there's no room inside a chest screen). At very small
-   windows with the recipe book open they can overlap it.
+13. **Where the tools sit is your choice** (`/itembeaconmod settings`; no Mod Menu button, as Mod Menu isn't in the
+   offline build cache: say if you want one and the next session can add it). Left can overlap the recipe book when
+   it's open; at tiny windows any spot can overlap something.
 14. **Type order** comes from the creative menu (the mod reads it): items it doesn't list (rare) go last, by name.
 15. **Nothing on screen is checked here**: the cloud workspace can't run the 26.3 client. Likely suspects if
    something looks wrong: the screen's layout at your GUI scale (send a screenshot), an item that shows as a barrier

@@ -36,6 +36,9 @@ import java.util.*;
 public final class ItemBeaconClient implements ClientModInitializer {
     public static final Logger LOG = LoggerFactory.getLogger("itembeacon");
     public static final BeaconCache BEACONS = new BeaconCache();
+    public static final java.nio.file.Path SETTINGS_FILE = net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("itembeacon.properties");
+    /** Where the inventory tools go ({@code /itembeaconmod settings}). */
+    public static ToolSettings SETTINGS = ToolSettings.load(SETTINGS_FILE);
     private static final SummaryAssembler SUMMARIES = new SummaryAssembler();
     /** From the server's welcome; 0 until it answers (or when the server doesn't have the plugin). */
     static int serverProtocol;
@@ -89,15 +92,20 @@ public final class ItemBeaconClient implements ClientModInitializer {
             return UseRule.beaconUse(player.isSecondaryUseActive(), held.isEmpty(), held.is(Items.COMPASS)) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         });
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, context) ->
-            dispatcher.register(ClientCommands.literal("itembeaconmod").executes(c -> { status(c.getSource().getClient()); return 1; })));
+            dispatcher.register(ClientCommands.literal("itembeaconmod").executes(c -> { status(c.getSource().getClient()); return 1; })
+                .then(ClientCommands.literal("settings").executes(c -> { openSettings = true; return 1; }))));
     }
 
     static void reset() { serverProtocol = 0; BEACONS.clear(); LOADED.clear(); TO_ASK.clear(); Waypoints.clear(); }
 
     public static boolean active() { return serverProtocol == Protocol.VERSION; }
 
+    /** Set by {@code /itembeaconmod settings}; opened on the next tick, once the chat screen has closed. */
+    static boolean openSettings;
+
     static void tick(Minecraft mc) {
         Waypoints.tick();
+        if (openSettings && mc.gui.screen() == null) { openSettings = false; mc.gui.setScreen(new dev.whizzle.itembeacon.client.ui.SettingsScreen(null)); }
         if (!active() || mc.level == null || TO_ASK.isEmpty()) return;
         List<ChunkPos> batch = new ArrayList<>(Protocol.MAX_QUERY);
         for (Iterator<Long> it = TO_ASK.iterator(); it.hasNext() && batch.size() < Protocol.MAX_QUERY; ) {

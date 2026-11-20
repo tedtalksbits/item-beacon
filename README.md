@@ -48,7 +48,12 @@ match (by name); a shulker box or bundle holding a match gets a gold frame. Sear
 
 On a server with the plugin (0.2.0 or newer), three sort buttons sit beside the container's slots and three beside
 your inventory: **Type** (like the creative menu), **A-Z**, **Count** (what you have most of first). Partial stacks
-are merged. Your inventory sort never touches the hotbar, armour or off-hand. Anyone who can open a container can
+are merged.
+
+Where the tools sit is up to you: **`/itembeaconmod settings`**. Search bar and container buttons: Right, Left, Top
+(a row above the panel) or In the title row (the buttons inside the panel next to the title, the search bar above).
+Your inventory buttons: Right, Left, Bottom (below the panel) or In the Inventory row. A spot that doesn't fit (a long
+container name, no room above or below) falls back to another. Saved in `config/itembeacon.properties`. Your inventory sort never touches the hotbar, armour or off-hand. Anyone who can open a container can
 sort it. Storage only: chests of every kind (minecarts and boats too), barrels, shulker boxes, ender chests, hoppers,
 dispensers, droppers.
 
