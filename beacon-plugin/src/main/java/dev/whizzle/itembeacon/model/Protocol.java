@@ -13,8 +13,9 @@ public final class Protocol {
     public static final int VERSION = 1;
     public static final String NAMESPACE = "itembeacon";
     public static final String HELLO = "hello", WELCOME = "welcome", QUERY = "query", CHUNK = "chunk",
-        SUMMARY = "summary", PICK = "pick", PLACES = "places", SHOW = "show", CLEAR = "clear", OPENED = "opened";
-    public static final List<String> SERVERBOUND = List.of(HELLO, QUERY, PICK, SHOW, CLEAR);
+        SUMMARY = "summary", PICK = "pick", PLACES = "places", SHOW = "show", CLEAR = "clear", OPENED = "opened",
+        SORT = "sort";
+    public static final List<String> SERVERBOUND = List.of(HELLO, QUERY, PICK, SHOW, CLEAR, SORT);
     public static final List<String> CLIENTBOUND = List.of(WELCOME, CHUNK, SUMMARY, PLACES, OPENED);
     /** Most chunks in one query. */
     public static final int MAX_QUERY = 64;
@@ -191,6 +192,30 @@ public final class Protocol {
     // ---- clear (C->S): empty. Clears the player's waypoints (by hand). ----
     public static byte[] clear() { return new byte[0]; }
     public static void readClear(byte[] data) { new Wire.Reader(data).end(); }
+
+    // ---- sort (C->S): Bool player inventory, VarInt n, n x VarInt slot ----
+    // Rearranges the open container (player false: the top inventory, slots 0..n-1, n = its size) or the player's
+    // main inventory (player true: slots 9..35, n = 27). The slots are the new order: the items now in those slots,
+    // taken in that order, are merged into full stacks and laid out from the first slot, empty slots last. The order
+    // is the client's (it knows the creative menu order and the names as the player reads them).
+    public static final int MAX_SORT = 54;
+    public record Sort(boolean player, List<Integer> order) {}
+    public static byte[] sort(boolean player, List<Integer> order) {
+        if (order.isEmpty() || order.size() > MAX_SORT) throw new IllegalArgumentException("1-" + MAX_SORT + " slots");
+        Wire.Writer w = new Wire.Writer().bool(player).varInt(order.size());
+        for (int i : order) w.varInt(i);
+        return w.bytes();
+    }
+    public static Sort readSort(byte[] data) {
+        Wire.Reader in = new Wire.Reader(data);
+        boolean player = in.bool();
+        int n = in.varInt();
+        if (n < 1 || n > MAX_SORT) throw new IllegalArgumentException("Bad sort size " + n);
+        List<Integer> order = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) order.add(in.varInt());
+        in.end();
+        return new Sort(player, order);
+    }
 
     // ---- opened (S->C): UTF container id. The player opened a container they had a waypoint to: clear it. ----
     public static byte[] opened(String id) { return new Wire.Writer().utf(id).bytes(); }

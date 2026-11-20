@@ -1,6 +1,6 @@
 # Test plan: Item Beacon
 
-**Slice 2, the mod (client 0.1.0, tests 23-36), plus slice 1 (plugin 0.1.0, tests 1-22).** Nothing has been tried
+**Inventory search and sort (plugin 0.2.0, client 0.2.0, tests 39-48)**, after slices 1 and 2 (tests 1-38, all checked by the owner for v0.1.0). Nothing has been tried
 by a player yet. Checked here: the mod builds against 26.3 / Fabric API 0.164.0 and loads in a real Fabric Loader
 (mixin audit), 10 client tests, 20 plugin unit tests, and the self-test on a real Paper 26.3-211 server (24 checks).
 Tests 1-22 are without the mod (any client); 23-36 with it.
@@ -65,6 +65,24 @@ Launch **fabric-loader-26.3** with the mod and join. `/itembeaconmod` should say
 | 37 | Client 0.1.1: right-click a beacon holding a block, many times (also with a block in the off hand) | The screen opens; no "Block placed" subtitle, no sound, no flash of the block. Sneak-right-click with a block still places it. |
 | 38 | Client 0.1.2: start the game, join, open a beacon **first**, then the creative inventory and search "plan" (or anything) | Search finds items (it was empty). Also after reopening the beacon a few times. |
 
+### Inventory search and sort (plugin 0.2.0, client 0.2.0)
+
+Fill a double chest with a mess: partial stacks of a few blocks, some food, tools, a renamed item, a shulker box with
+iron inside, a bundle with an apple.
+
+| # | Do this | Expect |
+|---|---|---|
+| 39 | Open the double chest | Beside it, on the right (left if the window is narrow): a search bar; Type / A-Z / Count beside the chest's rows; another Type / A-Z / Count beside your inventory rows. Hovering a button explains it. |
+| 40 | Type "iron" in the search bar | Everything else darkens; iron stays bright; the shulker box holding iron has a gold frame. Typing "e" doesn't close the screen; 1-9 don't swap slots while typing. Esc closes the screen. |
+| 41 | Chest's **Type** | Blocks first in creative-menu order, then tools, food...; partial stacks merged into full ones; the renamed item stays apart; empty slots at the end. |
+| 42 | Chest's **A-Z**, then **Count** | Alphabetical; then what you have most of first. Nothing lost or duplicated (count a stack before and after). |
+| 43 | Your inventory's **Type** with things in the hotbar and armour on | Only the 27 main slots change; hotbar, armour and off-hand stay exactly as they were. |
+| 44 | Do 41-42 in a barrel, a shulker box (placed), your ender chest, a hopper, a dispenser, a chest minecart | Sorted the same way. A furnace or brewing stand has the search bar and your inventory's buttons, but no container buttons. |
+| 45 | Your own inventory (E), survival | Search bar and your inventory's buttons beside it; they follow the panel when you open the recipe book. |
+| 46 | A second player has the same chest open while you sort | They see it sorted too; nothing lost. |
+| 47 | Join a server without the plugin (or a single-player world) | Search bar still there and working; no sort buttons. |
+| 48 | Creative inventory | Unchanged (no extra search bar). |
+
 ## ⚠️ Known limits and decisions for you
 
 1. **The default radius** (64, config `radius`): try it and tell me if it should change. The radius only decides
@@ -91,6 +109,11 @@ Launch **fabric-loader-26.3** with the mod and join. `/itembeaconmod` should say
 11. **Without the mod, right-clicking a beacon with a block in hand still flashes the block** (and plays its place
    sound) before the server takes it back: an unmodded game sees a lodestone and places the block itself. Nothing
    server-side can stop that. The mod fixes it from client 0.1.1.
-12. **Nothing on screen is checked here**: the cloud workspace can't run the 26.3 client. Likely suspects if
+12. **Sorting needs the mod and plugin 0.2.0**: players without the mod have no buttons (no command either; say if
+   you want `/sort`).
+13. **Sort and search sit beside the panel**, not inside it (there's no room inside a chest screen). At very small
+   windows with the recipe book open they can overlap it.
+14. **Type order** comes from the creative menu (the mod reads it): items it doesn't list (rare) go last, by name.
+15. **Nothing on screen is checked here**: the cloud workspace can't run the 26.3 client. Likely suspects if
    something looks wrong: the screen's layout at your GUI scale (send a screenshot), an item that shows as a barrier
    (the mod couldn't read it), Sodium/Iris not calling Fabric's model hook (the beacon stays a lodestone).

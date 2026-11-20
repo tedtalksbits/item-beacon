@@ -47,6 +47,41 @@ public final class Items {
 
     static ItemStack unreadable() { return new ItemStack(net.minecraft.world.item.Items.BARRIER); }
 
+    // ---- creative tabs ----
+
+    /**
+     * Builds the creative tabs' contents if the creative screen hasn't yet, exactly as that screen does
+     * ({@code CreativeModeInventoryScreen.tryRebuildTabContents}, read from the 26.3 jar): same arguments, and when the
+     * tabs were rebuilt, the creative search index too. Rebuilding without the index left creative search empty
+     * (client 0.1.1: the creative screen then saw nothing to rebuild and never indexed).
+     */
+    public static void ensureTabs(Minecraft mc) {
+        var level = mc.level;
+        if (level == null || mc.player == null) return;
+        HolderLookup.Provider registries = level.registryAccess();
+        boolean operator = mc.player.canUseGameMasterBlocks() && mc.options.operatorItemsTab().get();
+        if (CreativeModeTabs.tryRebuildTabContents(level.enabledFeatures(), operator, registries) && mc.getConnection() != null) {
+            List<ItemStack> search = List.copyOf(CreativeModeTabs.searchTab().getDisplayItems());
+            mc.getConnection().searchTrees().updateCreativeTooltips(registries, search);
+            mc.getConnection().searchTrees().updateCreativeTags(search);
+        }
+    }
+
+    /** Each item's place in the creative menu (category tabs in order, first appearance), for sorting by type. */
+    public static Map<Item, Integer> creativeOrder(Minecraft mc) {
+        Map<Item, Integer> out = new HashMap<>();
+        try {
+            ensureTabs(mc);
+            for (CreativeModeTab tab : CreativeModeTabs.allTabs()) {
+                if (tab.getType() != CreativeModeTab.Type.CATEGORY) continue;
+                for (ItemStack s : tab.getDisplayItems()) out.putIfAbsent(s.getItem(), out.size());
+            }
+        } catch (RuntimeException e) {
+            ItemBeaconClient.LOG.warn("Couldn't read the creative tabs for sorting: {}", e.toString());
+        }
+        return out;
+    }
+
     // ---- filters ----
 
     public enum Filter {
@@ -71,14 +106,7 @@ public final class Items {
     public static Map<Item, EnumSet<Filter>> filters(Minecraft mc) {
         Map<Item, EnumSet<Filter>> out = new HashMap<>();
         try {
-            var level = mc.level;
-            HolderLookup.Provider registries = level.registryAccess();
-            boolean operator = mc.player.canUseGameMasterBlocks() && mc.options.operatorItemsTab().get();
-            if (CreativeModeTabs.tryRebuildTabContents(level.enabledFeatures(), operator, registries) && mc.getConnection() != null) {
-                List<ItemStack> search = List.copyOf(CreativeModeTabs.searchTab().getDisplayItems());
-                mc.getConnection().searchTrees().updateCreativeTooltips(registries, search);
-                mc.getConnection().searchTrees().updateCreativeTags(search);
-            }
+            ensureTabs(mc);
             for (CreativeModeTab tab : CreativeModeTabs.allTabs()) {
                 var id = BuiltInRegistries.CREATIVE_MODE_TAB.getKey(tab);
                 Filter f = id == null ? null : TABS.get(id.toString());

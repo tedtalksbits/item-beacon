@@ -26,13 +26,14 @@ import java.util.*;
  * <li>Searching: opening a beacon sends the summary (in pages); a {@code pick} gets the places holding that item;
  * {@code show} sets the player's waypoints to them (or the nearest), {@code clear} clears them; opening a waypoint's
  * container sends {@code opened}.</li>
+ * <li>Sorting: {@code sort} rearranges the open storage container or the player's main inventory ({@link Sorter}).</li>
  * </ul>
  */
 public final class ClientBridge implements PluginMessageListener, Listener {
     public static final List<String> INCOMING = Protocol.SERVERBOUND.stream().map(Protocol::channel).toList();
     public static final List<String> OUTGOING = Protocol.CLIENTBOUND.stream().map(Protocol::channel).toList();
     static final String HELLO = Protocol.channel(Protocol.HELLO), QUERY = Protocol.channel(Protocol.QUERY), PICK = Protocol.channel(Protocol.PICK),
-        SHOW = Protocol.channel(Protocol.SHOW), CLEAR = Protocol.channel(Protocol.CLEAR),
+        SHOW = Protocol.channel(Protocol.SHOW), CLEAR = Protocol.channel(Protocol.CLEAR), SORT = Protocol.channel(Protocol.SORT),
         WELCOME = Protocol.channel(Protocol.WELCOME), CHUNK = Protocol.channel(Protocol.CHUNK), SUMMARY = Protocol.channel(Protocol.SUMMARY),
         PLACES = Protocol.channel(Protocol.PLACES), OPENED = Protocol.channel(Protocol.OPENED);
     static final int MESSAGES_PER_SECOND = 40;
@@ -100,6 +101,10 @@ public final class ClientBridge implements PluginMessageListener, Listener {
                 pick(player, Protocol.readPick(message));
             } else if (channel.equals(SHOW)) {
                 show(player, Protocol.readShow(message));
+            } else if (channel.equals(SORT)) {
+                if (!modded(player)) return;
+                Protocol.Sort sort = Protocol.readSort(message);
+                Sorter.sort(player, sort.player(), sort.order());
             } else if (channel.equals(CLEAR)) {
                 Protocol.readClear(message);
                 waypoints.clear(player);

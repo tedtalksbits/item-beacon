@@ -71,6 +71,31 @@ class ClientLogicTest {
         assertEquals("1.5 km", Format.distance(1500));
     }
 
+    static SortPlan.Slot full(int index, int type, String name, int group, int count) { return new SortPlan.Slot(index, false, type, name, group, count); }
+    static SortPlan.Slot none(int index) { return new SortPlan.Slot(index, true, 0, "", -1, 0); }
+
+    @Test void sortOrders() {
+        // slot: (index, creative order, name, group, count)
+        var cobble = full(0, 5, "Cobblestone", 0, 10);
+        var apple = full(1, 900, "Apple", 1, 3);
+        var empty = none(2);
+        var cobble2 = full(3, 5, "Cobblestone", 0, 64);
+        var named = full(4, 5, "Base stone", 2, 64);    // renamed cobblestone: same type, other group
+        var diamond = full(5, 300, "Diamond", 3, 1);
+        var unknown = full(6, Integer.MAX_VALUE, "Mod thing", 4, 1);
+        var slots = List.of(cobble, apple, empty, cobble2, named, diamond, unknown);
+        assertEquals(List.of(4, 3, 0, 5, 1, 6, 2), SortPlan.order(slots, SortPlan.Mode.TYPE));
+        assertEquals(List.of(1, 4, 3, 0, 5, 6, 2), SortPlan.order(slots, SortPlan.Mode.NAME));
+        assertEquals(List.of(3, 0, 4, 1, 5, 6, 2), SortPlan.order(slots, SortPlan.Mode.COUNT));   // 74 cobble, 64 named, 3 apples, then type
+        for (var mode : SortPlan.Mode.values()) assertEquals(Set.of(0, 1, 2, 3, 4, 5, 6), Set.copyOf(SortPlan.order(slots, mode)));
+    }
+
+    @Test void sortKeepsEmptySlotsLastAndTiesInPlace() {
+        var a = full(7, 1, "A", 0, 5);
+        var b = full(2, 1, "A", 0, 5);
+        assertEquals(List.of(2, 7, 0, 9), SortPlan.order(List.of(none(0), a, b, none(9)), SortPlan.Mode.TYPE));
+    }
+
     /** Mirrors the plugin's BeaconKeeper.onUse: only sneaking with an item (not a compass) places it. */
     @Test void useRuleMatchesThePlugin() {
         assertTrue(UseRule.beaconUse(false, false, false));   // a block in hand: open, don't place

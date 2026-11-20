@@ -11,7 +11,7 @@ sourceSets {
 			srcDir "$client/src/main/java"
 			include 'dev/whizzle/itembeacon/model/**', 'dev/whizzle/itembeacon/client/BeaconCache.java',
 				'dev/whizzle/itembeacon/client/SummaryAssembler.java', 'dev/whizzle/itembeacon/client/Format.java',
-				'dev/whizzle/itembeacon/client/Waypoints.java', 'dev/whizzle/itembeacon/client/UseRule.java'
+				'dev/whizzle/itembeacon/client/Waypoints.java', 'dev/whizzle/itembeacon/client/UseRule.java', 'dev/whizzle/itembeacon/client/SortPlan.java'
 		}
 	}
 	test { java { srcDir "$client/src/test/java" } }

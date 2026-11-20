@@ -3,10 +3,11 @@
 	"id": "itembeacon",
 	"version": "${version}",
 	"name": "Item Beacon",
-	"description": "The Item Beacon screen, block and waypoints, for servers running the Item Beacon plugin.",
+	"description": "The Item Beacon screen, block and waypoints, for servers running the Item Beacon plugin; a search bar and sort buttons on container screens.",
 	"authors": ["tedtalksbits"],
 	"license": "All-Rights-Reserved",
 	"environment": "client",
+	"mixins": ["itembeacon.mixins.json"],
 	"entrypoints": {
 		"client": ["dev.whizzle.itembeacon.client.ItemBeaconClient"]
 	},

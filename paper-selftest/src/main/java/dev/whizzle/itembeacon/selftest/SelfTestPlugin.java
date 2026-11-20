@@ -404,6 +404,31 @@ public final class SelfTestPlugin extends JavaPlugin {
             new Particles(beacons).tick(List.of(w));
             return loaded.stream().anyMatch(b -> b.equals(at(d + 3, 0))) ? null : "the demo beacon isn't in " + loaded.size() + " loaded beacons";
         }));
+        steps.add(new Step("sorting: the given order, partial stacks merged (a renamed stack apart), empties last, nothing lost", () -> { }, 1, () -> {
+            ItemStack named = item(Material.COBBLESTONE, 5);
+            named.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Base stone"));
+            ItemStack sword = item(Material.DIAMOND_SWORD, 1);
+            sword.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.SHARPNESS, 3);
+            ItemStack[] in = {item(Material.COBBLESTONE, 10), item(Material.DIRT, 5), null, item(Material.COBBLESTONE, 60), sword, named, item(Material.COBBLESTONE, 30)};
+            ItemStack[] out = Sorter.merge(in);
+            List<String> got = new ArrayList<>();
+            for (ItemStack i : out) got.add(i == null ? "-" : i.getType().getKey().getKey() + "x" + i.getAmount() + (i.hasData(DataComponentTypes.CUSTOM_NAME) ? "(named)" : ""));
+            List<String> want = List.of("cobblestonex64", "dirtx5", "cobblestonex36", "diamond_swordx1", "cobblestonex5(named)", "-", "-");
+            return all(got.equals(want) ? null : "got " + got, out[3] != null && out[3].getEnchantmentLevel(org.bukkit.enchantments.Enchantment.SHARPNESS) == 3 ? null : "the sword lost its enchantment");
+        }));
+        steps.add(new Step("sorting: only real storage containers (not a plugin menu, not a donkey) and only whole permutations", () -> { }, 1, () -> {
+            Block chest = container(o + 20, 0, Material.CHEST, A, item(Material.STONE, 1));
+            Inventory menu = Bukkit.createInventory(null, 27);
+            List<Integer> perm = new ArrayList<>();
+            for (int i = 0; i < 27; i++) perm.add(26 - i);
+            List<Integer> twice = new ArrayList<>(perm);
+            twice.set(0, 0);
+            return all(Sorter.SORTABLE.contains(((Chest) chest.getState(false)).getInventory().getType()) ? null : "a chest isn't sortable",
+                ((Chest) chest.getState(false)).getInventory().getHolder(false) instanceof BlockInventoryHolder ? null : "a chest's holder isn't a block holder",
+                menu.getHolder(false) == null ? null : "a plugin menu has a holder",
+                Sorter.isPermutation(perm, perm.stream().sorted().toList()) ? null : "a reversed order was refused",
+                Sorter.isPermutation(twice, perm.stream().sorted().toList()) ? "a slot listed twice was accepted" : null);
+        }));
         steps.add(new Step("protocol: a chunk answer lists the chunk's beacons", () -> { }, 1, () -> {
             Block b = at(d + 3, 0);
             Chunk c = b.getChunk();

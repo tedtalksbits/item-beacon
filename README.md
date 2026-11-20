@@ -40,6 +40,18 @@ read just now; other dimensions last. "Show waypoints" or "Nearest only" sets th
 until slice 3), "Clear waypoints" clears them. The block and item look like the owner's chosen draft; a creative tab
 holds the beacon. `/itembeaconmod` says what the mod knows.
 
+## Inventory search and sort (mod)
+
+Every container screen (chests, barrels, shulker boxes, ender chests, hoppers, furnaces, your own inventory...; not
+the creative inventory, which has its own search) gets a search bar beside it. Typing dims every slot that doesn't
+match (by name); a shulker box or bundle holding a match gets a gold frame. Search works on any server.
+
+On a server with the plugin (0.2.0 or newer), three sort buttons sit beside the container's slots and three beside
+your inventory: **Type** (like the creative menu), **A-Z**, **Count** (what you have most of first). Partial stacks
+are merged. Your inventory sort never touches the hotbar, armour or off-hand. Anyone who can open a container can
+sort it. Storage only: chests of every kind (minecarts and boats too), barrels, shulker boxes, ender chests, hoppers,
+dispensers, droppers.
+
 ## Without the mod
 
 Right-clicking a beacon opens a chest-style menu of your items, most first, totals in the tooltip. Click one: the

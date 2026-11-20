@@ -37,6 +37,7 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
   - `Demo`: `/itembeacon demo`.
 - `beacon-plugin/src/main/java/dev/whizzle/itembeacon/model/`: pure Java (`Wire`, `Protocol`, `BlockSet`, `ItemKey`,
   `Stack`, `Entry`, `PlayerIndex`). The mod (slice 2) compiles it in too, as Glowing Glass does. Change it once.
+  - `Sorter`: the `sort` message (inventory sorting).
   - `Particles`: enchanting glyphs drifting into beacons near players (config `particles`).
 - `fabric-client/`: Fabric client mod (separate Gradle build, Loom), package `dev.whizzle.itembeacon.client`.
   - `ItemBeaconClient`: handshake, beacon chunks (query for chunks loaded before the welcome, 64 per tick), summary
@@ -49,13 +50,32 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
   - `CreativeTab`: an "Item Beacon" tab, the stack built with exactly `BeaconItem.create`'s components.
   - `ui/PickerScreen`: the screen (grid with totals, search, filters, sort, places list, Show waypoints / Nearest
     only / Clear). `ui/Items`: decoding the server's item bytes, filters from the creative tabs.
+  - `inventory/InventoryTools`: search bar and sort buttons on container screens; `SortPlan` (pure) the order;
+    `mixin/ContainerScreenAccessor` the panel position (the mod's only mixin; keep mixins in `client/mixin/`).
   - `SummaryAssembler`, `Format`, `Waypoints` (pure): pages, text, the client's copy of the waypoints (slice 3 draws
     them).
 - `paper-selftest/`: development-only plugin that checks the plugin on a real Paper server.
 - `ci/mixin-audit/`: loads the mod in a real Fabric Loader (no mixins of our own yet; checks the model wrapper and
   that the screen's overrides still override). `ci/client-pure-tests/`: the mod's pure-Java tests without Loom.
 
-## Status (2026-11-17)
+## Status (2026-11-19)
+
+- **v0.1.0 released** (plugin 0.1.0, client 0.1.2; the owner checked tests 1-38 and tagged).
+- **Inventory search and sort done, not yet in a real game** (plugin 0.2.0, client 0.2.0, protocol 1 with a new
+  serverbound `sort`; the mod shows sort buttons only if the server registered it, so a 0.2.0 mod on a 0.1.0 server
+  just has search).
+  - Client `inventory/InventoryTools`: on every `AbstractContainerScreen` except the creative inventory, a search bar
+    (dims non-matching slots after a `nextStratum`, gold frame on boxes/bundles holding a match, up to 4 deep; key
+    presses go to it while focused) and Type / A-Z / Count rows for the storage container (Chest/ShulkerBox/Hopper/
+    Dispenser menus) and the player's main 27 slots. `SortPlan` (pure) makes the order; `Items.creativeOrder` the type
+    order. `mixin/ContainerScreenAccessor` reads the panel position (moved each frame: the recipe book shifts it).
+  - Plugin `Sorter`: checks an exact permutation and a real storage container (block holder, double chest,
+    non-living entity, the player's own ender chest; never a plugin menu or a donkey), merges with `isSimilar`, sets
+    the slots.
+  - Checked here: 14 client tests (new: sort orders, empty slots last, ties stay), mixin audit OK (the accessor is
+    applied to AbstractContainerScreen), 20 plugin unit tests, self-test 26 checks (new: merge keeps enchantments and
+    renamed stacks apart; only whole permutations, chests are real containers, plugin menus aren't).
+  - **Not checked: anything on screen.** `docs/TEST_PLAN.md` tests 39-48.
 
 - **Client 0.1.2: creative search works again** (owner: search found nothing, screenshot). Opening the beacon screen
   before the creative inventory built the creative tabs (for the filters) without the creative search index; the
@@ -93,8 +113,8 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
   - **Not seen in a real game:** a player opening/closing/placing/breaking, the menu, outlines, the compass guard,
     ender chest contents. `docs/TEST_PLAN.md` tests 1-22.
   - CI: workflows written (plugin + self-test; release publishes the plugin jar), **not yet run** (the owner pushes).
-- Next: the owner's in-game check of slices 1 and 2 (screenshots of the screen), his redrawn textures; then slice 3
-  (mod waypoints: beam, x-ray outline, on-screen marker; `show` with outlines = false).
+- Next: the owner's in-game check of tests 39-48; then slice 3 (mod waypoints: beam, x-ray outline, on-screen marker;
+  `show` with outlines = false).
 
 ## Open items
 
@@ -127,6 +147,9 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 | Summary split into pages of at most 256 KiB (custom payloads over 1 MiB are refused) | Owner, 2026-11-16 |
 | Demos only in creative | Same rule as the other projects |
 | Release tag = plugin version; the client will keep its own version | Same as the other projects |
+| Inventory sort: three buttons (Type like the creative menu / A-Z / Count), partial stacks merged; storage containers + the player's main 27 slots (never hotbar, armour, off-hand); anyone who can open it can sort; mod only | Owner, 2026-11-19 |
+| Inventory search: dims the rest, gold frame on shulker boxes / bundles holding a match; client-only, works on any server; every container screen but the creative inventory | Owner, 2026-11-19 |
+| The client works out the sort order (it knows creative order and names as the player reads them); the server only checks it's a permutation of a real container and merges | Kickoff for this feature |
 | After this project: re-dye for Glowing Glass (8 glowing glass of any colour around 1 dye) | Owner |
 
 ## Working rules

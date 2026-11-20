@@ -63,6 +63,7 @@ public final class ItemBeaconClient implements ClientModInitializer {
             Protocol.OPENED, data -> Waypoints.opened(Protocol.readOpened(data))));
         BeaconModels.register();
         CreativeTab.register();
+        dev.whizzle.itembeacon.client.inventory.InventoryTools.register();
         ClientPlayConnectionEvents.JOIN.register((listener, sender, client) -> reset());
         ClientPlayConnectionEvents.DISCONNECT.register((listener, client) -> reset());
         ServerboundPlayChannelEvents.REGISTER.register((listener, sender, client, channels) -> {

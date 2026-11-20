@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 /**
  * Dev-only: loads the mod's classes and their Minecraft and Fabric API parents (applying every mixin and interface
  * injection on the way, Fabric API's included; a mixin that can't apply fails here) before the game starts, then exits.
- * The mod has no mixins of its own yet; when it gets some, add their targets here.
+ * Add each new mixin's target here (AbstractContainerScreen for ContainerScreenAccessor).
  */
 public class MixinAudit implements PreLaunchEntrypoint {
     @Override public void onPreLaunch() {
@@ -20,7 +20,9 @@ public class MixinAudit implements PreLaunchEntrypoint {
             "dev.whizzle.itembeacon.client.Format", "dev.whizzle.itembeacon.client.UseRule", "dev.whizzle.itembeacon.client.CreativeTab",
             "dev.whizzle.itembeacon.client.render.BeaconModels", "dev.whizzle.itembeacon.client.render.BeaconBlockModel",
             "dev.whizzle.itembeacon.client.ui.Items", "dev.whizzle.itembeacon.client.ui.PickerScreen",
-            "dev.whizzle.itembeacon.client.net.Net", "dev.whizzle.itembeacon.client.net.RawPayload"};
+            "dev.whizzle.itembeacon.client.net.Net", "dev.whizzle.itembeacon.client.net.RawPayload",
+            "dev.whizzle.itembeacon.client.SortPlan", "dev.whizzle.itembeacon.client.inventory.InventoryTools",
+            "net.minecraft.client.gui.screens.inventory.AbstractContainerScreen", "dev.whizzle.itembeacon.client.mixin.ContainerScreenAccessor"};
         for (String t : targets) {
             try { Class.forName(t, false, cl); System.out.println("AUDIT loaded " + t); }   // loading applies the mixins; initialising would need the game's registries
             catch (Throwable e) { code = 1; System.out.println("AUDIT FAILED " + t + ": " + e); e.printStackTrace(System.out); }
@@ -49,6 +51,13 @@ public class MixinAudit implements PreLaunchEntrypoint {
                 System.out.println("AUDIT PickerScreen." + m.getName() + " overrides the game's: " + overrides);
                 if (!overrides) code = 1;
             }
+        } catch (Throwable e) { code = 1; e.printStackTrace(System.out); }
+        try {
+            // The accessor must really be applied to the container screen.
+            Class<?> screen = Class.forName("net.minecraft.client.gui.screens.inventory.AbstractContainerScreen", false, cl);
+            Class<?> acc = Class.forName("dev.whizzle.itembeacon.client.mixin.ContainerScreenAccessor", false, cl);
+            System.out.println("AUDIT AbstractContainerScreen implements ContainerScreenAccessor: " + acc.isAssignableFrom(screen));
+            if (!acc.isAssignableFrom(screen)) code = 1;
         } catch (Throwable e) { code = 1; e.printStackTrace(System.out); }
         try { MixinEnvironment.getCurrentEnvironment().audit(); System.out.println("AUDIT mixin audit done"); }
         catch (Throwable e) { code = 1; System.out.println("AUDIT mixin audit FAILED: " + e); e.printStackTrace(System.out); }

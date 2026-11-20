@@ -60,6 +60,8 @@ class ProtocolTest {
         assertEquals("e:abc", Protocol.readOpened(Protocol.opened("e:abc")));
         assertEquals(new Protocol.Show(4, 2, true, false), Protocol.readShow(Protocol.show(4, 2, true, false)));
         Protocol.readClear(Protocol.clear());
+        assertEquals(new Protocol.Sort(true, List.of(35, 9, 10)), Protocol.readSort(Protocol.sort(true, List.of(35, 9, 10))));
+        assertThrows(IllegalArgumentException.class, () -> Protocol.sort(false, List.of()));
         assertThrows(IllegalArgumentException.class, () -> Protocol.readClear(new byte[] {0}));
         var q = List.of(new Protocol.ChunkPos(-3, 4), new Protocol.ChunkPos(100, -100));
         assertEquals(q, Protocol.readQuery(Protocol.query(q)));
