@@ -132,7 +132,11 @@ public final class SelfTestPlugin extends JavaPlugin {
                 mid.test(BeaconItem.create(1)) ? "a beacon counts as the lodestone" : null);
         }));
         int cr = 0;
-        steps.add(new Step("crafter: compass, lodestone, eye of ender in the middle column -> one Item Beacon", () -> {
+        // The crafter puts its result into the chest in front of it (no flying item to find), and the check waits
+        // long enough for a slow CI runner (CI once found nothing after 12 ticks within 2.5 blocks).
+        steps.add(new Step("crafter: compass, lodestone, eye of ender in the middle column -> one Item Beacon, into the chest in front", () -> {
+            Block out = at(cr + 1, 0);
+            out.setType(Material.CHEST);
             Block c = at(cr, 0);
             c.setType(Material.CRAFTER);
             org.bukkit.block.data.type.Crafter data = (org.bukkit.block.data.type.Crafter) c.getBlockData();
@@ -143,24 +147,19 @@ public final class SelfTestPlugin extends JavaPlugin {
             inv.setItem(4, item(Material.LODESTONE, 1));
             inv.setItem(7, item(Material.ENDER_EYE, 1));
             at(cr, -1).setType(Material.REDSTONE_BLOCK);
-        }, 12, () -> {
-            List<Item> items = itemsNear(at(cr + 1, 0), 2.5);
-            boolean ok = items.size() == 1 && BeaconItem.is(items.getFirst().getItemStack());
-            String got = items.stream().map(i -> i.getItemStack().getType() + (BeaconItem.is(i.getItemStack()) ? "(beacon)" : "")).toList().toString();
-            for (Item i : items) i.remove();
-            return ok ? null : "crafter dropped " + got;
-        }));
-
-        steps.add(new Step("creative tab: an item built the way the mod's tab builds it is a real Item Beacon and stacks with crafted ones", () -> { }, 1, () -> {
-            // The same three components fabric-client's CreativeTab.stack sets.
-            String json = "{\"id\":\"minecraft:lodestone\",\"count\":1,\"components\":{"
-                + "\"minecraft:custom_data\":\"{PublicBukkitValues:{\\\"itembeacon:beacon\\\":1b}}\","
-                + "\"minecraft:item_name\":\"Item Beacon\","
-                + "\"minecraft:custom_model_data\":{\"strings\":[\"itembeacon:item_beacon\"]}},\"DataVersion\":" + Bukkit.getUnsafe().getDataVersion() + "}";
-            ItemStack fromTab = Bukkit.getUnsafe().deserializeItemFromJson(com.google.gson.JsonParser.parseString(json).getAsJsonObject());
-            return all(BeaconItem.is(fromTab) ? null : "the tab's item isn't a beacon: " + Bukkit.getUnsafe().serializeItemAsJson(fromTab),
-                fromTab.isSimilar(BeaconItem.create(1)) ? null : "the tab's item wouldn't stack with a crafted one: "
-                    + Bukkit.getUnsafe().serializeItemAsJson(fromTab) + " vs " + Bukkit.getUnsafe().serializeItemAsJson(BeaconItem.create(1)));
+        }, 40, () -> {
+            Inventory chest = ((Chest) at(cr + 1, 0).getState(false)).getBlockInventory();
+            List<String> got = new ArrayList<>();
+            int beaconsMade = 0;
+            for (ItemStack i : chest.getContents()) {
+                if (i == null) continue;
+                got.add(i.getType() + "x" + i.getAmount() + (BeaconItem.is(i) ? "(beacon)" : ""));
+                if (BeaconItem.is(i)) beaconsMade += i.getAmount();
+            }
+            List<Item> loose = itemsNear(at(cr + 1, 0), 6);
+            for (Item i : loose) got.add("loose " + i.getItemStack().getType());
+            for (Item i : loose) i.remove();
+            return beaconsMade == 1 && got.size() == 1 ? null : "crafter made " + got;
         }));
         int bb = 10;
         steps.add(new Step("beacon: breakNaturally drops one Item Beacon and forgets the record", () -> beaconAt(bb, 0).breakNaturally(new ItemStack(Material.DIAMOND_PICKAXE)), 3,

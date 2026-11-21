@@ -218,6 +218,11 @@ Shulker Styles, Logic Blocks or Blueprints (their patterns were copied, their fi
 - The server's item bytes are `ItemStack.CODEC` + `DataVersion` + compressed NBT (read from the Paper jar); 26.3 has
   no `DataFixTypes.ITEM_STACK`, so `ui/Items` updates through `References.ITEM_STACK` directly.
 
+- Self-test: the crafter outputs into a chest in front of it and the check waits 40 ticks. Looking for its dropped
+  item after 12 ticks within 2.5 blocks failed once on a GitHub runner (release v0.2.0, first try).
+- CI writes the self-test report to the run's summary page (readable without a login); the full log and server log
+  are the `selftest-report` artifact.
+
 ## Cloud workspace pitfalls
 
 - The device shell has Java 11 and **no network**; the cloud container can't reach Maven, Paper or Fabric either,

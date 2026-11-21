@@ -101,6 +101,15 @@ jobs:
               cp -r "$RUNNER_TEMP/paper-selftest/$d" .paper/
             fi
           done
+      - name: Self-test report on the run's summary page
+        if: always()
+        run: |
+          report="$RUNNER_TEMP/paper-selftest/plugins/ItemBeaconSelfTest/report.txt"
+          if [ -f "$report" ]; then
+            { echo '### Self-test report'; echo '```'; cat "$report"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'No self-test report (the server did not get that far): see the server log artifact.' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Self-test report and server log
         if: always()
         uses: actions/upload-artifact@v7
